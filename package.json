@@ -4,6 +4,7 @@
   "private": true,
   "description": "Investec Budgeter Phase 2 Google Apps Script integration",
   "type": "module",
+  "packageManager": "npm@10.8.2",
   "engines": {
     "node": ">=20"
   },
