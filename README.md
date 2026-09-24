@@ -194,6 +194,76 @@ the quality/deployment jobs validate the bundle before either Apps Script projec
 staging and production jobs use separate script IDs, while the Investec credentials remain inside
 their respective workbooks.
 
+### GitHub Actions and release flow
+
+```mermaid
+flowchart TD
+    DEV["development\nfeature / fix / improvement"]
+    STAGE["staging\nintegration branch"]
+    MASTER["master\nproduction release branch"]
+    PRD["Production Apps Script\nlinked production workbook"]
+    STAGE_APP["Staging Apps Script\ndisposable sandbox workbook"]
+
+    PR_DEV["Pull request -> development"]
+    PR_STAGE["Pull request\ndevelopment -> staging"]
+    PR_MASTER["Pull request\nstaging -> master"]
+
+    POLICY["Pull request policy\nstaging-only check"]
+    VERIFY_PR["Quality / verify\nformat, lint, types, tests, bundle"]
+    VERIFY_PUSH["Quality / verify\npush validation"]
+    VERIFY_STAGE["Verify before deployment\nnpm run verify"]
+    VERIFY_PROD["Verify before release\nnpm run verify"]
+
+    STAGE_GATE["staging environment\nprotected secrets + deployment gate"]
+    PROD_GATE["production environment\nprotected secrets"]
+    STAGE_DEPLOY["Staging Apps Script deployment\nclasp 3.4.1 push --force"]
+    PROD_RELEASE["Production Apps Script release\nclasp 3.4.1 push --force"]
+    EVIDENCE_S["Deployment evidence artifact"]
+    EVIDENCE_P["Release evidence artifact"]
+
+    DEV --> PR_STAGE
+    PR_DEV --> VERIFY_PR
+    PR_STAGE --> VERIFY_PR
+    PR_MASTER --> VERIFY_PR
+    PR_MASTER --> POLICY
+
+    PR_STAGE -. merge after checks .-> STAGE
+    STAGE --> VERIFY_PUSH
+    STAGE --> STAGE_DEPLOY
+    STAGE_DEPLOY --> STAGE_GATE
+    STAGE_GATE --> VERIFY_STAGE
+    VERIFY_STAGE --> STAGE_APP
+    STAGE_APP --> EVIDENCE_S
+
+    STAGE -. only permitted source .-> PR_MASTER
+    PR_MASTER -. merge after checks .-> MASTER
+    MASTER --> VERIFY_PUSH
+    MASTER --> PROD_RELEASE
+    PROD_RELEASE --> PROD_GATE
+    PROD_GATE --> VERIFY_PROD
+    VERIFY_PROD --> PRD
+    PRD --> EVIDENCE_P
+
+    DEV -. branch deletion blocked .- DEV
+    STAGE -. branch deletion blocked .- STAGE
+    MASTER -. branch deletion blocked .- MASTER
+
+    classDef branch fill:#e8f0fe,stroke:#1a73e8,color:#174ea6
+    classDef check fill:#e6f4ea,stroke:#188038,color:#137333
+    classDef deploy fill:#fef7e0,stroke:#f9ab00,color:#8a4b00
+    classDef artifact fill:#f3e8fd,stroke:#9334e6,color:#681da8
+    class DEV,STAGE,MASTER branch
+    class VERIFY_PR,VERIFY_PUSH,VERIFY_STAGE,VERIFY_PROD,POLICY check
+    class STAGE_GATE,PROD_GATE,STAGE_DEPLOY,PROD_RELEASE,STAGE_APP,PRD deploy
+    class EVIDENCE_S,EVIDENCE_P artifact
+```
+
+The flow has three distinct protections: branch rules prevent deletion and direct unsafe updates;
+pull-request policy permits only the repository's `staging` branch to promote into `master`; and
+the quality/deployment jobs validate the bundle before either Apps Script project is changed. The
+staging and production jobs use separate script IDs, while the Investec credentials remain inside
+their respective workbooks.
+
 ## Security and data boundaries
 
 - Investec access is read-only: accounts, balances, and transactions only.
