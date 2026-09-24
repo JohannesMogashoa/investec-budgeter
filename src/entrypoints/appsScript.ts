@@ -8,6 +8,10 @@ import {
   syncAccounts,
   syncBalances,
   syncTransactions,
+  startLiveSync,
+  stopLiveSync,
+  viewLiveSyncStatus,
+  runScheduledTransactionSync,
   testConnection,
 } from './menuActions';
 
@@ -23,4 +27,8 @@ Object.assign(globalThis, {
   syncAccounts,
   syncBalances,
   syncTransactions,
+  startLiveSync,
+  stopLiveSync,
+  viewLiveSyncStatus,
+  runScheduledTransactionSync,
 });

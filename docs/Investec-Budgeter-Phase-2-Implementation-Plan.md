@@ -22,7 +22,7 @@ The phase succeeds when the workbook can:
 7. produce a useful sync run record without logging sensitive payloads; and
 8. recover safely from partial failures and repeated manual runs.
 
-Phase 2 does **not** decide what a transaction means. Categorisation, recurring-obligation matching, budget reconciliation, a Needs Review inbox, scheduled unattended sync, and Safe to Spend are deferred to Phases 3 and 4.
+Phase 2 does **not** decide what a transaction means. Categorisation, recurring-obligation matching, budget reconciliation, a Needs Review inbox, and Safe to Spend are deferred to Phases 3 and 4. Epic F includes bounded, opt-in near-real-time polling for current-cycle visibility; it does not promise hard real-time delivery or unbounded unattended operation.
 
 ## 2. Evidence and current-state observations
 
@@ -44,6 +44,8 @@ Phase 2 therefore introduces a canonical `Transactions` ledger and supporting te
 
 - Local TypeScript project compiled for Apps Script.
 - Manual menu actions for setup, connection test, account refresh, balance refresh, and transaction sync.
+- Opt-in adaptive live sync with a managed Apps Script trigger and explicit expiry.
+- Current-month and configurable pay-cycle freshness/trend projection.
 - Sandbox/prod environment configuration, with production disabled by default.
 - Investec OAuth token acquisition and in-memory/cache reuse.
 - Account discovery and selection.
@@ -69,7 +71,7 @@ Phase 2 therefore introduces a canonical `Transactions` ledger and supporting te
 - Multi-user authorization or public distribution.
 - Marketplace add-on packaging.
 - A standalone .NET backend.
-- Fully unattended scheduled sync. The code must be trigger-safe, but trigger installation belongs to Phase 4.
+- Permanently unattended or hard-real-time sync. Epic F supports bounded, opt-in polling; webhook/backend ingestion remains future work.
 
 ### 3.3 Why this boundary
 
@@ -1035,6 +1037,20 @@ Acceptance: a developer can implement the client without reopening documentation
 - no duplicates;
 - checkpoint correctness.
 
+**F8. Near-real-time polling and freshness**
+
+- managed five-minute trigger while explicitly enabled;
+- trigger de-duplication, expiry, stop, and recovery;
+- provider rate-limit and quota backoff;
+- manual/live run origin and freshness metrics.
+
+**F9. Current-cycle projection**
+
+- calendar-month and configurable cycle boundaries;
+- posted/pending inflows and outflows;
+- balance, freshness, daily-rate, and projection metrics;
+- protected reproducible read model with no automatic categorisation.
+
 ### Epic G — Quality and operations
 
 **G1. CI pipeline**
@@ -1077,7 +1093,8 @@ Acceptance: a developer can implement the client without reopening documentation
 7. F1–F3 transaction model and fetch.
 8. F4–F6 index, upsert, orchestration.
 9. F7 failure/replay proof.
-10. G1–G3 CI, docs, acceptance run.
+10. F8–F9 live freshness and current-cycle projection.
+11. G1–G3 CI, docs, acceptance run.
 
 Do not implement transaction upsert before identity v1 is proven against fixtures. Do not enable production before the sandbox replay suite passes.
 
@@ -1127,6 +1144,8 @@ Phase 2 is complete only when all are true:
 - [ ] Malformed provider data fails safely and is not silently imported.
 - [ ] Formula-like provider text is stored as text, not executed.
 - [ ] Each run produces a redacted operational summary.
+- [ ] Manual sync provides immediate refresh and opt-in live sync expires safely.
+- [ ] Current-cycle metrics show their last successful sync/freshness timestamp.
 - [ ] Unit, fixture-contract, repository, replay, and sandbox smoke tests pass.
 - [ ] Production remains disabled until an explicit pilot decision.
 

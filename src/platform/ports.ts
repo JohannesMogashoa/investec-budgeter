@@ -54,6 +54,12 @@ export interface LockProvider {
   get(name: string): Lock;
 }
 
+export interface TriggerManager {
+  ensureTransactionSync(intervalMinutes: 1 | 5 | 10 | 15 | 30): void;
+  removeTransactionSync(): void;
+  hasTransactionSync(): boolean;
+}
+
 export type LogValue = string | number | boolean | null;
 
 export interface LogEvent {

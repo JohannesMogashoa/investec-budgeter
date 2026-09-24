@@ -1,5 +1,12 @@
 import { syncAccounts as runAccountSync } from '../application/syncAccounts';
 import { syncBalances as runBalanceSync } from '../application/syncBalances';
+import { syncTransactions as runTransactionSync } from '../application/syncTransactions';
+import {
+  getLiveSyncStatus,
+  startLiveSync as enableLiveSync,
+  stopLiveSync as disableLiveSync,
+  liveSyncIsActive,
+} from '../application/liveSync';
 import { testConnection as runTestConnection } from '../application/testConnection';
 import { TOKEN_CACHE_KEY } from '../investec/authClient';
 import { CredentialStore } from '../investec/credentials';
@@ -12,13 +19,13 @@ import { AppsScriptLockProvider } from '../platform/appsScriptLock';
 import { AppsScriptSecretStore } from '../platform/appsScriptSecretStore';
 import { AppsScriptSheetGateway } from '../platform/appsScriptSheetGateway';
 import { AppsScriptUserCache } from '../platform/appsScriptUserCache';
+import { AppsScriptTriggerManager } from '../platform/appsScriptTriggerManager';
 import { AccountRepository } from '../sheets/accountRepository';
+import { SettingsRepository } from '../sheets/settingsRepository';
+import { SyncStateRepository } from '../sheets/syncStateRepository';
 import { SyncRunRepository } from '../sheets/syncRunRepository';
+import { TransactionRepository } from '../sheets/transactionRepository';
 import { createInvestecHttpClient } from './investecRuntime';
-
-function notImplemented(action: string): void {
-  SpreadsheetApp.getUi().alert(`${action} is not implemented yet.`);
-}
 
 export function setupWorkbookSheets(): void {
   try {
@@ -103,5 +110,73 @@ export function syncBalances(): void {
 }
 
 export function syncTransactions(): void {
-  notImplemented('Sync transactions');
+  const result = runTransactionSync(createTransactionDependencies('MANUAL'));
+  SpreadsheetApp.getUi().alert(
+    `Transaction sync ${result.status.toLowerCase()}. Received: ${result.received}; inserted: ${result.inserted}; updated: ${result.updated}; unchanged: ${result.unchanged}; rejected: ${result.rejected}; promotions: ${result.promotions}.`,
+  );
+}
+
+function createTransactionDependencies(origin: 'MANUAL' | 'LIVE') {
+  const gateway = new AppsScriptSheetGateway();
+  return {
+    client: createInvestecHttpClient(),
+    gateway,
+    accounts: new AccountRepository(gateway),
+    transactions: new TransactionRepository(gateway),
+    settings: new SettingsRepository(gateway),
+    state: new SyncStateRepository(gateway),
+    runs: new SyncRunRepository(gateway),
+    clock: new AppsScriptClock(),
+    locks: new AppsScriptLockProvider(),
+    hasher: new AppsScriptHasher(),
+    ids: new AppsScriptIdGenerator(),
+    logger: new AppsScriptLogger(),
+    environment: 'sandbox' as const,
+    origin,
+  };
+}
+
+export function startLiveSync(): void {
+  const gateway = new AppsScriptSheetGateway();
+  const clock = new AppsScriptClock();
+  const state = new SyncStateRepository(gateway);
+  const result = enableLiveSync(
+    new SettingsRepository(gateway),
+    state,
+    new AppsScriptTriggerManager(),
+    clock,
+  );
+  const sync = runTransactionSync(createTransactionDependencies('LIVE'));
+  SpreadsheetApp.getUi().alert(
+    `Live sync enabled until ${result.untilUtc}. Initial sync: ${sync.status.toLowerCase()}, received ${sync.received}.`,
+  );
+}
+
+export function stopLiveSync(): void {
+  const gateway = new AppsScriptSheetGateway();
+  const result = disableLiveSync(new SyncStateRepository(gateway), new AppsScriptTriggerManager());
+  SpreadsheetApp.getUi().alert(`Live sync ${result.enabled ? 'enabled' : 'stopped'}.`);
+}
+
+export function viewLiveSyncStatus(): void {
+  const gateway = new AppsScriptSheetGateway();
+  const status = getLiveSyncStatus(
+    new SyncStateRepository(gateway),
+    new AppsScriptTriggerManager(),
+    new AppsScriptClock(),
+  );
+  SpreadsheetApp.getUi().alert(
+    status.enabled
+      ? `Live sync is active until ${status.untilUtc}. Trigger installed: ${status.triggerInstalled}.`
+      : `Live sync is inactive. Trigger installed: ${status.triggerInstalled}.`,
+  );
+}
+
+export function runScheduledTransactionSync(): void {
+  const gateway = new AppsScriptSheetGateway();
+  const clock = new AppsScriptClock();
+  const state = new SyncStateRepository(gateway);
+  const triggers = new AppsScriptTriggerManager();
+  if (!liveSyncIsActive(state, triggers, clock)) return;
+  runTransactionSync(createTransactionDependencies('LIVE'));
 }

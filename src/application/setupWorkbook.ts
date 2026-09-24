@@ -23,7 +23,9 @@ function validateExistingSheet(sheet: SheetPort, schema: SheetSchema): void {
   const expected = [...schema.headers];
   const matches =
     actual.length === expected.length && actual.every((value, index) => value === expected[index]);
-  if (!matches) {
+  const appendOnlyMigration =
+    actual.length < expected.length && actual.every((value, index) => value === expected[index]);
+  if (!matches && !appendOnlyMigration) {
     throw new IncompatibleWorkbookError(
       `Sheet "${schema.name}" has incompatible headers. Expected: ${expected.join(' | ')}`,
     );
@@ -57,6 +59,8 @@ export function setupWorkbook(gateway: SheetGateway): SetupResult {
       createdSheets.push(schema.name);
       sheet.writeValues(1, 1, [[...schema.headers]]);
     } else if (sheet.getLastRow() === 0) {
+      sheet.writeValues(1, 1, [[...schema.headers]]);
+    } else if (sheet.getLastColumn() < schema.headers.length) {
       sheet.writeValues(1, 1, [[...schema.headers]]);
     }
 

@@ -1,6 +1,6 @@
 import type { SheetColumnFormat, SheetSetup } from '../platform/ports';
 
-export const WORKBOOK_SCHEMA_VERSION = '1.0.0';
+export const WORKBOOK_SCHEMA_VERSION = '1.1.0';
 
 export type ColumnOwnership = 'provider' | 'system' | 'user';
 
@@ -113,6 +113,12 @@ export const SCHEMA_MANIFEST: readonly SheetSchema[] = [
     column('Review Status', 'user', 'Reserved for future review workflow.'),
     column('User Note', 'user', 'User-maintained note.'),
     column('Excluded', 'user', 'User-maintained exclusion flag.'),
+    column('Identity Alias', 'system', 'Previous row key retained during identity promotion.'),
+  ]),
+  sheet('Current Cycle', [
+    column('Metric', 'system', 'Current-cycle metric name.'),
+    column('Value', 'system', 'Current-cycle metric value.'),
+    column('As Of UTC', 'system', 'Timestamp for the metric snapshot.', { numberFormat: '@' }),
   ]),
   sheet('Sync Runs', [
     column('Run ID', 'system', 'Unique sync run identifier.'),

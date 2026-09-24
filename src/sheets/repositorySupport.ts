@@ -33,7 +33,10 @@ export function readStoredRecords(
     .readValues()
     .slice(1)
     .map((row, offset) => {
-      const values = headers.map((_, index) => row[index] ?? null);
+      const values = headers.map((_, index) => {
+        const value = row[index] ?? null;
+        return typeof value === 'string' && /^'[=+@-]/.test(value) ? value.slice(1) : value;
+      });
       const record = Object.fromEntries(
         headers.map((header, index) => [header, values[index]]),
       ) as SheetRecord;
@@ -46,7 +49,11 @@ export function valuesForRecord(
   record: Readonly<SheetRecord>,
   headers: readonly string[],
 ): SheetValue[] {
-  return headers.map((header) => record[header] ?? null);
+  return headers.map((header) => {
+    const value = record[header] ?? null;
+    if (typeof value === 'string' && /^[=+@-]/.test(value)) return `'${value}`;
+    return value;
+  });
 }
 
 export function indexBy(

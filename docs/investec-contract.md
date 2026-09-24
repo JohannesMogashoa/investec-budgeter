@@ -116,12 +116,29 @@ GET /za/pb/v1/accounts/{accountId}/transactions
 ```
 
 with optional `fromDate`, `toDate`, `transactionType`, and `includePending` query parameters.
-Filtering is based on `postingDate`. The transaction response includes a provider `uuid`, which
-must be evaluated as the preferred stable transaction identity during Epic F fixture replay.
+Epic F requests `includePending=true` so the current cycle can show pending activity. Filtering is
+based on `postingDate` where available. The response envelope is `data.transactions`, with
+pagination metadata in `meta.totalPages`.
 
-The document also defines a pending-transactions endpoint and `includePending=true`; neither is
-implicitly enabled by Phase 2. Pending behavior must be decided in Epic F after inspecting the
-actual sandbox responses.
+The transaction DTO fields are `accountId`, `type`, `transactionType`, `status`, `description`,
+`cardNumber`, `postedOrder`, `postingDate`, `valueDate`, `actionDate`, `transactionDate`,
+`amount`, `runningBalance`, and optional `uuid`. The API does not provide transaction currency;
+the implementation takes the validated currency from the selected account's balance record and
+does not persist `cardNumber`.
+
+The API examples return positive numeric amounts for both debit and credit records. The ledger
+normalizes `DEBIT` to a negative amount and `CREDIT` to a positive amount. The provider `uuid`
+is the preferred stable identity; records without it use the versioned fallback identity defined
+in ADR-002.
+
+The document also defines a separate pending-transactions endpoint. Epic F does not call it in
+v1 because the main endpoint's `includePending=true` path provides a single reconciliation stream.
+If pending records lack UUIDs and later become posted UUID records, the sync promotes a uniquely
+matched fallback row and retains the former identity as an alias. Ambiguous matches fail closed.
+
+The product is near-real-time adjacent, not real-time guaranteed: manual sync is always available
+and opt-in live sync polls the selected accounts approximately every five minutes while active.
+Provider posting latency, Apps Script scheduling, quotas, and rate limits can delay visibility.
 
 ## Error contract
 

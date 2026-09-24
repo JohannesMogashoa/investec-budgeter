@@ -99,7 +99,7 @@ describe('sheet repositories', () => {
       lastSuccessfulWindowEnd: '2026-01-31',
       lastSuccessfulRunId: 'run-1',
       identityVersion: 'v1',
-      schemaVersion: '1.0.0',
+      schemaVersion: '1.1.0',
     });
   });
 
