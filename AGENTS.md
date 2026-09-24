@@ -18,8 +18,9 @@ Run commands from the repository root:
 - `npm run format:check` — verify Prettier formatting.
 - `npm run verify` — run every pull-request quality check locally.
 
-GitHub Actions runs `npm run verify` for pull requests and pushes to `main`. Staging deployment
-is a separate, manually approved workflow; production deployment is never automatic.
+GitHub Actions runs `npm run verify` for pull requests and pushes to `development`, `staging`, and
+`master`. The `staging` branch deploys to the disposable sandbox environment, while a permitted
+`staging` → `master` merge automatically releases production after the required gates.
 
 Prefer reproducible commands that work from the repository root, and commit the relevant lockfile.
 

@@ -1,27 +1,21 @@
-name: Staging Apps Script deployment
+name: Production Apps Script release
 
 on:
   push:
-    branches: [staging]
-  workflow_dispatch:
-    inputs:
-      reason:
-        description: Why is this staging deployment being run?
-        required: true
-        type: string
+    branches: [master]
 
 permissions:
   contents: read
 
 jobs:
-  deploy:
+  release:
     runs-on: ubuntu-latest
     environment:
-      name: staging
+      name: production
     timeout-minutes: 15
     concurrency:
-      group: staging-deployment
-      cancel-in-progress: true
+      group: production-release
+      cancel-in-progress: false
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -32,28 +26,27 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
-      - name: Verify before deployment
+      - name: Verify before release
         run: npm run verify
       - name: Create isolated clasp configuration
         env:
-          CLASP_SCRIPT_ID: ${{ secrets.STAGING_SCRIPT_ID }}
+          CLASP_SCRIPT_ID: ${{ secrets.PRODUCTION_SCRIPT_ID }}
         run: |
-          node -e "const fs=require('node:fs'); const id=process.env.CLASP_SCRIPT_ID; if (!id) throw new Error('STAGING_SCRIPT_ID is required'); fs.writeFileSync('.clasp.json', JSON.stringify({scriptId:id, rootDir:'dist'}, null, 2)+'\\n');"
+          node -e "const fs=require('node:fs'); const id=process.env.CLASP_SCRIPT_ID; if (!id) throw new Error('PRODUCTION_SCRIPT_ID is required'); fs.writeFileSync('.clasp.json', JSON.stringify({scriptId:id, rootDir:'dist'}, null, 2)+'\\n');"
       - name: Configure clasp credentials
         env:
           CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
         run: |
           node -e "const fs=require('node:fs'); const value=process.env.CLASPRC_JSON; if (!value) throw new Error('CLASPRC_JSON is required'); JSON.parse(value); fs.writeFileSync(process.env.HOME+'/.clasprc.json', value+'\\n', {mode:0o600});"
-      - name: Push bundle to staging Apps Script project
+      - name: Push bundle to production Apps Script project
         run: npx --yes @google/clasp@2.4.2 push --force
-      - name: Record deployment evidence
+      - name: Write release evidence
         env:
-          DEPLOY_REASON: ${{ inputs.reason }}
-        run: |
-          node scripts/write-deployment-evidence.mjs
-      - name: Upload deployment evidence
+          DEPLOY_REASON: Automatic release from master after required gates
+        run: node scripts/write-deployment-evidence.mjs
+      - name: Upload release evidence
         uses: actions/upload-artifact@v4
         with:
-          name: staging-deployment-${{ github.sha }}
+          name: production-release-${{ github.sha }}
           path: staging-deployment-evidence.txt
-          retention-days: 30
+          retention-days: 90

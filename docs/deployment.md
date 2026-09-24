@@ -6,6 +6,20 @@ Run `npm ci` followed by `npm run verify`. The command checks formatting, lint, 
 unit tests, the Apps Script build, and bundle safety. The generated `dist/` directory is ignored
 and must never be committed.
 
+## Branch promotion model
+
+The repository uses three long-lived branches:
+
+- `development` is the playground for features, fixes, and contributor work.
+- `staging` is the integration branch and deploys to a disposable Apps Script workbook using
+  Investec sandbox credentials.
+- `master` is the production release branch. Only a pull request whose source is the repository's
+  `staging` branch may target it; a successful merge triggers the production release workflow.
+
+Direct pushes to `staging` and `master` are blocked by rulesets. Contributors should open pull
+requests into `development`, then promote tested work from `development` to `staging`, and finally
+promote `staging` to `master`.
+
 ## Staging deployment
 
 Staging is a disposable container-bound Apps Script project using Investec sandbox credentials.
@@ -26,7 +40,9 @@ workbook and attach the result to the acceptance report.
 
 ## Production pilot gate
 
-Production requires explicit approval after sandbox acceptance. Use a copied workbook, a
+Production is automatically deployed after a permitted `staging` → `master` merge and all
+required checks pass. Configure the `production` environment without a reviewer gate if fully
+automatic release is desired. Use a copied workbook, a
 read-only production API key with only account, balance, and transaction permissions, one selected
 account, and a short historical window. Compare dates, signs, pending/posted behavior, balances,
 duplicate-looking transactions, and repeated-sync results against Investec Online before widening

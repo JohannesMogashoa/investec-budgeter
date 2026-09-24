@@ -1,0 +1,29 @@
+name: Pull request policy
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  staging-only:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce production promotion source
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+          HEAD_BRANCH: ${{ github.head_ref }}
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ "$BASE_BRANCH" != "master" ]; then
+            echo "No promotion restriction applies to this target branch."
+            exit 0
+          fi
+          if [ "$HEAD_BRANCH" != "staging" ] || [ "$HEAD_REPOSITORY" != "$REPOSITORY" ]; then
+            echo "Only the repository's staging branch may open a PR against master."
+            exit 1
+          fi
+          echo "Approved promotion path: staging -> master."
