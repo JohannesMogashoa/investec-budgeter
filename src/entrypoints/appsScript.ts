@@ -32,3 +32,20 @@ Object.assign(globalThis, {
   viewLiveSyncStatus,
   runScheduledTransactionSync,
 });
+
+export {
+  onOpen,
+  configureCredentials,
+  saveCredentials,
+  clearCredentials,
+  clearCachedAccessToken,
+  setupWorkbookSheets,
+  testConnection,
+  syncAccounts,
+  syncBalances,
+  syncTransactions,
+  startLiveSync,
+  stopLiveSync,
+  viewLiveSyncStatus,
+  runScheduledTransactionSync,
+};
