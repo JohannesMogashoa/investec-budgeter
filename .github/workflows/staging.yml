@@ -45,7 +45,7 @@ jobs:
         run: |
           node -e "const fs=require('node:fs'); const value=process.env.CLASPRC_JSON; if (!value) throw new Error('CLASPRC_JSON is required'); JSON.parse(value); fs.writeFileSync(process.env.HOME+'/.clasprc.json', value+'\\n', {mode:0o600});"
       - name: Push bundle to staging Apps Script project
-        run: npx --yes @google/clasp@2.4.2 push --force
+        run: npx --yes @google/clasp@3.4.1 push --force
       - name: Record deployment evidence
         env:
           DEPLOY_REASON: ${{ inputs.reason }}
