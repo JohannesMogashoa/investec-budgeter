@@ -1,6 +1,6 @@
 # Investec Contract Baseline
 
-**Status:** Phase 2 discovery baseline; live sandbox verification required before API implementation.
+**Status:** Phase 2 discovery baseline; live sandbox verification remains required before production use.
 **Environment:** Sandbox only. Credentials and real account data must never be committed.
 
 ## Confirmed public contract
@@ -49,6 +49,17 @@ table before adding DTOs or request code.
 
 Do not use public credentials shown in documentation. Obtain credentials through the owner's
 Investec Developer sandbox connection and store them only in Apps Script properties.
+
+## Authentication implementation boundary
+
+Epic D stores one sandbox credential bundle in the executing user's Apps Script User Properties.
+Access tokens are stored only in the executing user's short-lived User Cache and are never written
+to cells, logs, source control, or UI responses. The credential modal submits only to server-side
+Apps Script functions, uses the default HTML iframe sandbox, and does not load external scripts.
+
+The application is sandbox-only until a later phase explicitly enables production. The API key
+must be created with account identity, balance, and transaction permissions only; transfer,
+payment, card, statement, and tax permissions are not required by Phase 2.
 
 ## Sources
 

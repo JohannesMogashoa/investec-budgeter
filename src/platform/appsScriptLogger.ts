@@ -1,9 +1,10 @@
 import type { LogEvent, Logger } from './ports';
+import { redactFields } from '../investec/redaction';
 
 function serialize(event: LogEvent): string {
   return JSON.stringify({
     event: event.event,
-    ...(event.fields ?? {}),
+    ...redactFields(event.fields ?? {}),
   });
 }
 

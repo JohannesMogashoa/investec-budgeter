@@ -8,6 +8,7 @@ import type {
   LockProvider,
   LogEvent,
   Logger,
+  Sleeper,
   SecretStore,
   SheetGateway,
   SheetPort,
@@ -18,10 +19,19 @@ import type {
 export class FakeHttpTransport implements HttpTransport {
   readonly requests: HttpRequest[] = [];
   response: HttpResponse = { status: 200, headers: {}, body: '' };
+  readonly responses: HttpResponse[] = [];
 
   request(request: HttpRequest): HttpResponse {
     this.requests.push(request);
-    return this.response;
+    return this.responses.shift() ?? this.response;
+  }
+}
+
+export class FakeSleeper implements Sleeper {
+  readonly delays: number[] = [];
+
+  sleep(milliseconds: number): void {
+    this.delays.push(milliseconds);
   }
 }
 

@@ -20,5 +20,6 @@ await build({
 });
 
 await copyFile('appsscript.json', new URL('appsscript.json', outputDirectory));
+await copyFile('src/ui/credentials.html', new URL('credentials.html', outputDirectory));
 
 console.log('Built Apps Script bundle in dist/.');

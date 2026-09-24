@@ -17,6 +17,10 @@ export interface HttpTransport {
   request(request: HttpRequest): HttpResponse;
 }
 
+export interface Sleeper {
+  sleep(milliseconds: number): void;
+}
+
 export interface SecretStore {
   get(key: string): string | undefined;
   set(key: string, value: string): void;
