@@ -1,5 +1,7 @@
 # Deployment and Release Operations
 
+Read [Merge Protocol](merge-protocol.md) for the complete branch and pull-request procedure.
+
 ## Local verification
 
 Run `npm ci` followed by `npm run verify`. The command checks formatting, lint, strict TypeScript,
@@ -18,13 +20,14 @@ The repository uses three long-lived branches:
 
 Direct pushes to `staging` and `master` are blocked by rulesets. Contributors should open pull
 requests into `development`, then promote tested work from `development` to `staging`, and finally
-promote `staging` to `master`.
+promote `staging` to `master`. A pull request targeting `staging` must come from `development`.
 
 ## Staging deployment
 
 Staging is a disposable container-bound Apps Script project using Investec sandbox credentials.
-The GitHub Actions **Staging Apps Script deployment** workflow is manually triggered and requires
-the protected `staging` environment.
+The GitHub Actions **Staging Apps Script deployment** workflow runs after pushes to the protected
+`staging` branch and can also be run manually when a reason is supplied. It requires the protected
+`staging` environment.
 
 Configure these GitHub environment secrets:
 
@@ -40,16 +43,17 @@ workbook and attach the result to the acceptance report.
 
 ## Production pilot gate
 
-Production is automatically deployed after a permitted `staging` → `master` merge and all
-required checks pass. Configure the `production` environment without a reviewer gate if fully
-automatic release is desired. Use a copied workbook, a
+Production is automatically deployed after a permitted `staging` → `master` merge and the
+production workflow's `verify` check passes. Configure the protected `production` environment's
+reviewer gate according to the release decision. Use a copied workbook, a
 read-only production API key with only account, balance, and transaction permissions, one selected
 account, and a short historical window. Compare dates, signs, pending/posted behavior, balances,
 duplicate-looking transactions, and repeated-sync results against Investec Online before widening
 the window.
 
 Do not enable production by changing a workflow secret or editing the sandbox environment name.
-Production requires a separately reviewed configuration and deployment action.
+Production configuration and the release decision remain separately reviewed even though the
+deployment job is triggered automatically by a merge to `master`.
 
 ## Rollback
 

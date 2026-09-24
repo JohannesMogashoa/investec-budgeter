@@ -153,6 +153,10 @@ export class FakeSheet implements SheetPort {
     });
   }
 
+  clearValues(): void {
+    this.values = [];
+  }
+
   appendValues(values: SheetValue[][]): void {
     this.writeValues(this.getLastRow() + 1, 1, values);
   }

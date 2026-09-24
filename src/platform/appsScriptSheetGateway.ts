@@ -33,6 +33,10 @@ class AppsScriptSheet implements SheetPort {
     this.sheet.getRange(startRow, startColumn, values.length, values[0].length).setValues(values);
   }
 
+  clearValues(): void {
+    this.sheet.getDataRange().clearContent();
+  }
+
   appendValues(values: SheetValue[][]): void {
     this.writeValues(this.getLastRow() + 1, 1, values);
   }

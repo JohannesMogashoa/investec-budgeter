@@ -43,9 +43,10 @@ the workbook before making changes, compare the headers with `docs/data-dictiona
 resolve the migration as a reviewed code change. Do not manually rename system columns to force
 setup to continue.
 
-Deploy only the generated `dist/` bundle. The staging workflow is manually approved and uses a
-separate Apps Script project and sandbox credentials. Production deployment requires the read-only
-pilot checklist in `docs/deployment.md` and is never performed automatically by CI.
+Deploy only the generated `dist/` bundle. The staging workflow runs for the protected `staging`
+branch and uses a separate Apps Script project and sandbox credentials. Production deployment is
+triggered by the protected `staging` → `master` promotion, runs `npm run verify`, and requires the
+read-only pilot checklist in `docs/deployment.md` before the release decision is made.
 
 ## Credential rotation
 
