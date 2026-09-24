@@ -24,9 +24,9 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 20
           cache: npm
@@ -52,7 +52,7 @@ jobs:
         run: |
           node scripts/write-deployment-evidence.mjs
       - name: Upload deployment evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: staging-deployment-${{ github.sha }}
           path: staging-deployment-evidence.txt
