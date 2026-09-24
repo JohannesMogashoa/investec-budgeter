@@ -29,7 +29,10 @@ function isTemplateSettingsLayout(sheet: SheetPort): boolean {
 function isLegacySettingsLayout(sheet: SheetPort): boolean {
   const values = sheet.readValues();
   const header = values[0] ?? [];
-  return header.length === 1 && String(header[0] ?? '').trim() === 'Key';
+  return (
+    String(header[0] ?? '').trim() === 'Key' &&
+    header.slice(1).every((value) => String(value ?? '').trim() === '')
+  );
 }
 
 function migrateTemplateSettings(sheet: SheetPort, schema: SheetSchema): void {
@@ -54,8 +57,12 @@ function migrateLegacySettings(sheet: SheetPort, schema: SheetSchema): void {
   if (settings.length > 0) sheet.writeValues(2, 1, settings);
 }
 
-function validateExistingSheet(sheet: SheetPort, schema: SheetSchema): void {
-  const actual = firstRow(sheet);
+function validateExistingSheet(
+  sheet: SheetPort,
+  schema: SheetSchema,
+  proposedHeader = firstRow(sheet),
+): void {
+  const actual = proposedHeader;
   if (actual.length === 0) return;
 
   const expected = [...schema.headers];
@@ -79,20 +86,26 @@ export interface SetupResult {
 /** Creates or safely migrates the technical workbook sheets. */
 export function setupWorkbook(gateway: SheetGateway): SetupResult {
   const existing = new Map<string, SheetPort>();
+  const migrations: Array<() => void> = [];
 
   // Preflight every existing sheet before creating or changing anything.
   for (const schema of SCHEMA_MANIFEST) {
     const sheet = gateway.getSheet(schema.name);
     if (sheet) {
+      let migrate: (() => void) | undefined;
       if (schema.name === 'Settings' && isTemplateSettingsLayout(sheet)) {
-        migrateTemplateSettings(sheet, schema);
+        migrate = () => migrateTemplateSettings(sheet, schema);
       } else if (schema.name === 'Settings' && isLegacySettingsLayout(sheet)) {
-        migrateLegacySettings(sheet, schema);
+        migrate = () => migrateLegacySettings(sheet, schema);
       }
-      validateExistingSheet(sheet, schema);
+      validateExistingSheet(sheet, schema, migrate ? [...schema.headers] : undefined);
+      if (migrate) migrations.push(migrate);
       existing.set(schema.name, sheet);
     }
   }
+
+  // Apply recognized migrations only after all existing sheets pass preflight.
+  migrations.forEach((migrate) => migrate());
 
   const createdSheets: string[] = [];
   const updatedSheets: string[] = [];
