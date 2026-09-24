@@ -77,4 +77,27 @@ describe('setupWorkbook', () => {
       ['DefaultCurrency', 'ZAR', ''],
     ]);
   });
+
+  it('migrates the compact legacy settings layout', () => {
+    const gateway = new FakeSheetGateway();
+    gateway
+      .createSheet('Settings')
+      .writeValues(1, 1, [
+        ['Key'],
+        ['ActivePeriod', 46266],
+        ['DefaultCurrency', 'ZAR'],
+        ['Source / reference'],
+        ['Current tracker', 'Spending Tracker 2026'],
+      ]);
+
+    setupWorkbook(gateway);
+
+    expect(gateway.getSheet('Settings')?.readValues()).toEqual([
+      ['Key', 'Value', 'Description'],
+      ['ActivePeriod', 46266, ''],
+      ['DefaultCurrency', 'ZAR', ''],
+      ['Source / reference', '', ''],
+      ['Current tracker', 'Spending Tracker 2026', ''],
+    ]);
+  });
 });
