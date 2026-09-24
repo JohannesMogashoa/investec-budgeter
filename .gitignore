@@ -6,5 +6,5 @@ coverage/
 !.env.example
 .clasp.json
 .claspignore
+staging-deployment-evidence.txt
 *.log
-

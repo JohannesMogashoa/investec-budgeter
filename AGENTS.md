@@ -16,6 +16,10 @@ Run commands from the repository root:
 - `npm run lint` — check style and common defects.
 - `npm run build:check` — build and validate the Apps Script bundle.
 - `npm run format:check` — verify Prettier formatting.
+- `npm run verify` — run every pull-request quality check locally.
+
+GitHub Actions runs `npm run verify` for pull requests and pushes to `main`. Staging deployment
+is a separate, manually approved workflow; production deployment is never automatic.
 
 Prefer reproducible commands that work from the repository root, and commit the relevant lockfile.
 
@@ -34,3 +38,7 @@ There is no existing Git history to establish a repository-specific convention. 
 ## Security & Configuration
 
 Never commit credentials, bank data, generated secrets, or local environment files. Use an ignored `.env` file for local configuration and provide safe placeholder values in an example configuration file once configuration is added.
+
+Operational procedures, deployment controls, acceptance evidence, and extension boundaries are
+documented in `docs/operations.md`, `docs/deployment.md`, `docs/acceptance-report.md`, and
+`docs/architecture-and-extensibility.md`.
