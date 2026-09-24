@@ -1,6 +1,6 @@
 /* global URL, console */
 
-import { mkdir, copyFile } from 'node:fs/promises';
+import { appendFile, mkdir, copyFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 
@@ -12,12 +12,35 @@ await build({
   bundle: true,
   entryPoints: ['src/entrypoints/appsScript.ts'],
   format: 'iife',
+  globalName: 'InvestecBudgeter',
   outfile: fileURLToPath(new URL('Code.js', outputDirectory)),
   platform: 'browser',
   target: 'es2019',
   legalComments: 'none',
   logLevel: 'info',
 });
+
+const handlers = [
+  'onOpen',
+  'configureCredentials',
+  'saveCredentials',
+  'clearCredentials',
+  'clearCachedAccessToken',
+  'setupWorkbookSheets',
+  'testConnection',
+  'syncAccounts',
+  'syncBalances',
+  'syncTransactions',
+  'startLiveSync',
+  'stopLiveSync',
+  'viewLiveSyncStatus',
+  'runScheduledTransactionSync',
+];
+
+await appendFile(
+  new URL('Code.js', outputDirectory),
+  `\n${handlers.map((handler) => `function ${handler}(){return InvestecBudgeter.${handler}.apply(this, arguments);}`).join('\n')}\n`,
+);
 
 await copyFile('appsscript.json', new URL('appsscript.json', outputDirectory));
 await copyFile('src/ui/credentials.html', new URL('credentials.html', outputDirectory));

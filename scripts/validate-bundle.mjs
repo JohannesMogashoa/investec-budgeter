@@ -30,6 +30,9 @@ for (const handler of requiredHandlers) {
   if (!bundle.includes(handler)) {
     throw new Error(`Bundle is missing Apps Script handler: ${handler}`);
   }
+  if (!new RegExp(`function ${handler}\\s*\\(`).test(bundle)) {
+    throw new Error(`Bundle does not expose Apps Script handler globally: ${handler}`);
+  }
 }
 
 for (const pattern of forbiddenPatterns) {
