@@ -42,9 +42,10 @@ The API key must have only the Phase 2 scopes:
 Do not enable transfers, beneficiary payments, documents, or other write/read capabilities for
 this project.
 
-The OpenAPI document contains sample sandbox credentials in its descriptive text. They are
-documentation examples only and must never be copied into `.env`, Apps Script properties, tests,
-or source code. Owner-provided credentials remain in Apps Script User Properties only.
+Local sandbox credentials belong in the ignored `.env` file using the keys in `.env.example`.
+The Apps Script runtime does not load `.env`; enter those values through the credential modal so
+they are stored in Apps Script User Properties. Never commit credentials, tokens, or raw provider
+payloads.
 
 ## Account endpoint
 
