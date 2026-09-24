@@ -1,67 +1,143 @@
-# Investec Contract Baseline
+# Investec Private Bank API Contract
 
-**Status:** Phase 2 discovery baseline; live sandbox verification remains required before production use.
-**Environment:** Sandbox only. Credentials and real account data must never be committed.
+**Source:** [`docs/sa-pb-account-information.json`](./sa-pb-account-information.json)
+**OpenAPI version:** 3.0.0
+**Document version:** 1.0.1
+**Phase 2 environment:** Sandbox only
 
-## Confirmed public contract
+The checked-in OpenAPI document is the authoritative local contract for account, balance, and
+transaction request/response shapes. It includes both servers:
 
-The official Investec developer documentation describes OAuth 2.0 client credentials with a
-`client_id`, `client_secret`, and `x-api-key`. The token request uses Basic authentication,
-`application/x-www-form-urlencoded`, and `grant_type=client_credentials`:
+| Environment | Base URL                              | Phase 2 status   |
+| ----------- | ------------------------------------- | ---------------- |
+| Sandbox     | `https://openapisandbox.investec.com` | Enabled          |
+| Production  | `https://openapi.investec.com`        | Disabled in code |
+
+## Authentication
+
+Investec uses OAuth 2.0 client credentials. The token request is:
 
 ```text
-POST https://openapisandbox.investec.com/identity/v2/oauth2/token
-Authorization: Basic <base64(client_id:client_secret)>
-x-api-key: <api-key>
+POST {baseUrl}/identity/v2/oauth2/token
+Authorization: Basic base64(client_id:client_secret)
+x-api-key: <api key>
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded
 
 grant_type=client_credentials
 ```
 
-The documented access token is a bearer token with a roughly 30-minute lifetime. Private Bank
-access is configured through an API key whose permissions include account identity, balances,
-and transactions. Phase 2 requests read permissions only.
+The API returns a short-lived Bearer token. Account calls use only:
 
-The expected Private Bank route family is:
+```text
+Authorization: Bearer <access token>
+```
+
+The API key must have only the Phase 2 scopes:
+
+- `accounts`
+- `balances`
+- `transactions`
+
+Do not enable transfers, beneficiary payments, documents, or other write/read capabilities for
+this project.
+
+The OpenAPI document contains sample sandbox credentials in its descriptive text. They are
+documentation examples only and must never be copied into `.env`, Apps Script properties, tests,
+or source code. Owner-provided credentials remain in Apps Script User Properties only.
+
+## Account endpoint
 
 ```text
 GET /za/pb/v1/accounts
+Authorization: Bearer <access token>
+```
+
+The successful response envelope is:
+
+```json
+{
+  "data": {
+    "accounts": [
+      {
+        "accountId": "opaque-id",
+        "accountNumber": "account-number",
+        "accountName": "display name",
+        "referenceName": "owner reference",
+        "productName": "Private Bank Account",
+        "kycCompliant": true,
+        "profileId": "profile-id",
+        "profileName": "profile name"
+      }
+    ]
+  },
+  "links": { "self": "..." },
+  "meta": { "totalPages": 1 }
+}
+```
+
+The implementation maps `productName` to the workbook’s `Account Type` column. `accountNumber`
+is masked to the final four digits before writing. Profile and KYC fields are validated but not
+stored because they are outside the Phase 2 workbook contract.
+
+The OpenAPI schema requires account fields and allows account IDs up to 40 characters. The
+balance path parameter declares a 30-character maximum, which is inconsistent with the account
+schema; the implementation accepts opaque IDs returned by the account endpoint and the live
+sandbox must be checked before any production enablement.
+
+## Balance endpoint
+
+```text
 GET /za/pb/v1/accounts/{accountId}/balance
+Authorization: Bearer <access token>
+```
+
+The successful response requires:
+
+- `accountId`
+- `currentBalance`
+- `availableBalance`
+- `budgetBalance`
+- `straightBalance`
+- `cashBalance`
+- `currency` matching `^[A-Z]{3}$`
+
+Phase 2 stores only `currentBalance`, `availableBalance`, and `currency`. The other balance
+components are validated but intentionally not added to the workbook schema. A missing or
+invalid required balance field causes that account’s refresh to fail without overwriting its
+previous values.
+
+## Transaction implications for Epic F
+
+The OpenAPI document defines:
+
+```text
 GET /za/pb/v1/accounts/{accountId}/transactions
 ```
 
-These route assumptions are a starting point, not an implementation contract. See the open-items
-table before adding DTOs or request code.
+with optional `fromDate`, `toDate`, `transactionType`, and `includePending` query parameters.
+Filtering is based on `postingDate`. The transaction response includes a provider `uuid`, which
+must be evaluated as the preferred stable transaction identity during Epic F fixture replay.
 
-## Live sandbox items to verify
+The document also defines a pending-transactions endpoint and `includePending=true`; neither is
+implicitly enabled by Phase 2. Pending behavior must be decided in Epic F after inspecting the
+actual sandbox responses.
 
-| Area             | Must capture                                                        | Current status                                                         |
-| ---------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Base URLs        | Sandbox and production hosts                                        | Sandbox host confirmed; production host recorded only in official docs |
-| Token response   | `access_token`, `token_type`, `expires_in`, `scope`, error envelope | Shape shown publicly; capture a sanitized response                     |
-| Account response | IDs, names, masked number, type, currency, pagination               | Needs sandbox capture                                                  |
-| Balance response | Current vs available balance, currency, timestamp                   | Needs sandbox capture                                                  |
-| Transactions     | Field names, nullability, amount sign, dates, status, posted order  | Needs sandbox capture                                                  |
-| Pagination       | Page/cursor fields, limits, ordering, empty-page behavior           | Needs sandbox capture                                                  |
-| Errors/limits    | 400/401/403/429/5xx bodies and rate-limit headers                   | Needs sandbox capture                                                  |
-| Identity         | Stable transaction ID and pending-to-posted behavior                | Needs replay fixture                                                   |
+## Error contract
 
-Do not use public credentials shown in documentation. Obtain credentials through the owner's
-Investec Developer sandbox connection and store them only in Apps Script properties.
+The documented account and balance endpoints expose at least:
 
-## Authentication implementation boundary
+- `400` bad request;
+- `401` unauthorized;
+- `403` forbidden/scope failure;
+- `429` rate limit;
+- `500` provider failure.
 
-Epic D stores one sandbox credential bundle in the executing user's Apps Script User Properties.
-Access tokens are stored only in the executing user's short-lived User Cache and are never written
-to cells, logs, source control, or UI responses. The credential modal submits only to server-side
-Apps Script functions, uses the default HTML iframe sandbox, and does not load external scripts.
+The HTTP client retries only transient failures, performs one 401 token replay, and never logs
+response bodies or authorization material.
 
-The application is sandbox-only until a later phase explicitly enables production. The API key
-must be created with account identity, balance, and transaction permissions only; transfer,
-payment, card, statement, and tax permissions are not required by Phase 2.
+## Configuration and verification status
 
-## Sources
-
-- [Investec Individuals & Private Business](https://developer.investec.com/individuals)
-- [Investec Authorisation API](https://developer.investec.com/api-reference/SA%20Open%20API%20-%20Authorization)
+The local OpenAPI document resolves the previously open account and balance shape questions.
+Live sandbox verification is still required for credentials, actual response optionality, rate
+limits, and any differences between sandbox and production.

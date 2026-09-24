@@ -27,6 +27,7 @@ const column = (
   ownership,
   description,
   protected: ownership !== 'user',
+  numberFormat: options.numberFormat ?? '@',
   ...options,
 });
 

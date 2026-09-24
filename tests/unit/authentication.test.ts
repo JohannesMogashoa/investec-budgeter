@@ -170,7 +170,7 @@ describe('Investec authentication and HTTP', () => {
     transport.responses.push(token('access-token'), {
       status: 200,
       headers: {},
-      body: JSON.stringify({ data: [{ accountId: 'account-1' }] }),
+      body: JSON.stringify({ data: { accounts: [{ accountId: 'account-1' }] } }),
     });
     const { auth } = createAuth(transport);
     const result = testConnection(

@@ -21,6 +21,14 @@ export interface Sleeper {
   sleep(milliseconds: number): void;
 }
 
+export interface Hasher {
+  sha256(value: string): string;
+}
+
+export interface IdGenerator {
+  uuid(): string;
+}
+
 export interface SecretStore {
   get(key: string): string | undefined;
   set(key: string, value: string): void;

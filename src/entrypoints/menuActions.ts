@@ -1,10 +1,19 @@
+import { syncAccounts as runAccountSync } from '../application/syncAccounts';
+import { syncBalances as runBalanceSync } from '../application/syncBalances';
 import { testConnection as runTestConnection } from '../application/testConnection';
 import { TOKEN_CACHE_KEY } from '../investec/authClient';
 import { CredentialStore } from '../investec/credentials';
 import { setupWorkbook } from '../application/setupWorkbook';
+import { AppsScriptClock } from '../platform/appsScriptClock';
+import { AppsScriptHasher } from '../platform/appsScriptHasher';
+import { AppsScriptIdGenerator } from '../platform/appsScriptIdGenerator';
+import { AppsScriptLogger } from '../platform/appsScriptLogger';
+import { AppsScriptLockProvider } from '../platform/appsScriptLock';
 import { AppsScriptSecretStore } from '../platform/appsScriptSecretStore';
 import { AppsScriptSheetGateway } from '../platform/appsScriptSheetGateway';
 import { AppsScriptUserCache } from '../platform/appsScriptUserCache';
+import { AccountRepository } from '../sheets/accountRepository';
+import { SyncRunRepository } from '../sheets/syncRunRepository';
 import { createInvestecHttpClient } from './investecRuntime';
 
 function notImplemented(action: string): void {
@@ -59,11 +68,38 @@ export function clearCachedAccessToken(): void {
 }
 
 export function syncAccounts(): void {
-  notImplemented('Refresh accounts');
+  const gateway = new AppsScriptSheetGateway();
+  const result = runAccountSync({
+    client: createInvestecHttpClient(),
+    accounts: new AccountRepository(gateway),
+    runs: new SyncRunRepository(gateway),
+    clock: new AppsScriptClock(),
+    locks: new AppsScriptLockProvider(),
+    hasher: new AppsScriptHasher(),
+    ids: new AppsScriptIdGenerator(),
+    logger: new AppsScriptLogger(),
+    environment: 'sandbox',
+  });
+  SpreadsheetApp.getUi().alert(
+    `Account sync ${result.status.toLowerCase()}. Received: ${result.received}; inserted: ${result.inserted}; updated: ${result.updated}; rejected: ${result.rejected}; inactive: ${result.inactive}.`,
+  );
 }
 
 export function syncBalances(): void {
-  notImplemented('Refresh balances');
+  const gateway = new AppsScriptSheetGateway();
+  const result = runBalanceSync({
+    client: createInvestecHttpClient(),
+    accounts: new AccountRepository(gateway),
+    runs: new SyncRunRepository(gateway),
+    clock: new AppsScriptClock(),
+    locks: new AppsScriptLockProvider(),
+    ids: new AppsScriptIdGenerator(),
+    logger: new AppsScriptLogger(),
+    environment: 'sandbox',
+  });
+  SpreadsheetApp.getUi().alert(
+    `Balance sync ${result.status.toLowerCase()}. Accounts: ${result.accountCount}; updated: ${result.updated}; unchanged: ${result.unchanged}; rejected: ${result.rejected}.`,
+  );
 }
 
 export function syncTransactions(): void {

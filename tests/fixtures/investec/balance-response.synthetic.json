@@ -1,0 +1,17 @@
+{
+  "data": {
+    "accountId": "sandbox-account-001",
+    "currentBalance": 12345.67,
+    "availableBalance": 12000.0,
+    "budgetBalance": 0,
+    "straightBalance": 0,
+    "cashBalance": 12345.67,
+    "currency": "ZAR"
+  },
+  "links": {
+    "self": "https://openapisandbox.investec.com/za/pb/v1/accounts/sandbox-account-001/balance"
+  },
+  "meta": {
+    "totalPages": 1
+  }
+}

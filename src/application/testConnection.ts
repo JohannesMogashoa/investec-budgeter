@@ -19,10 +19,14 @@ function accountCount(body: string): number {
     throw new InvestecError('RESPONSE_INVALID', 'Investec returned an invalid accounts response.');
   }
   const data = (parsed as { data?: unknown }).data;
-  if (!Array.isArray(data)) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
     throw new InvestecError('RESPONSE_INVALID', 'Investec returned an invalid accounts response.');
   }
-  return data.length;
+  const accounts = (data as { accounts?: unknown }).accounts;
+  if (!Array.isArray(accounts)) {
+    throw new InvestecError('RESPONSE_INVALID', 'Investec returned an invalid accounts response.');
+  }
+  return accounts.length;
 }
 
 export function testConnection(client: InvestecHttpClient): ConnectionResult {
