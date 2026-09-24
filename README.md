@@ -122,7 +122,7 @@ development -> staging -> master -> production Apps Script project
 
 Direct pushes to `staging` and `master` are blocked. Only `staging` may target `master`. GitHub Actions runs the quality suite on pull requests and on the three long-lived branches. Staging uses `STAGING_SCRIPT_ID` and `CLASPRC_JSON`; production uses `PRODUCTION_SCRIPT_ID` and the protected production environment. Investec credentials are configured in the workbook and are not passed through CI.
 
-Read [Deployment and Release Operations](docs/deployment.md) before deploying or approving a production pilot. Production remains a separately reviewed read-only rollout, even though the release workflow is prepared for automatic deployment after branch gates pass.
+Read [Merge Protocol](docs/merge-protocol.md) and [Deployment and Release Operations](docs/deployment.md) before promoting or approving a production pilot. Production remains a separately reviewed read-only rollout, even though the release workflow deploys automatically after a permitted `staging` → `master` merge.
 
 ### GitHub Actions and release flow
 
@@ -235,6 +235,7 @@ Document contribution boundaries, add sanitized provider fixtures and end-to-end
 - [Phase 2 Implementation Plan](docs/Investec-Budgeter-Phase-2-Implementation-Plan.md) — scope, design decisions, epics, acceptance criteria, and migration triggers.
 - [Setup and Live Sync](docs/setup.md) — first-time workbook configuration and live polling.
 - [Deployment and Release Operations](docs/deployment.md) — branch flow, CI environments, deployment secrets, production pilot, rollback, and evidence.
+- [Merge Protocol](docs/merge-protocol.md) — required branch order, promotion sources, PR rules, and recovery procedure.
 - [Operations](docs/operations.md) — refresh, replay, failures, schema recovery, and credential rotation.
 - [Architecture and Extensibility](docs/architecture-and-extensibility.md) — safe extension rules for fields, identity, sync modes, and future runtimes.
 - [Data Dictionary](docs/data-dictionary.md) — workbook columns and ownership semantics.
