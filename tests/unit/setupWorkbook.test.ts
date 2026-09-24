@@ -56,4 +56,25 @@ describe('setupWorkbook', () => {
       SCHEMA_MANIFEST.find((schema) => schema.name === 'Transactions')?.headers,
     );
   });
+
+  it('migrates the imported budget template settings layout', () => {
+    const gateway = new FakeSheetGateway();
+    gateway
+      .createSheet('Settings')
+      .writeValues(1, 1, [
+        ['Investec Budgeter — Settings'],
+        [],
+        ['Setting', 'Value', '', 'Validation Lists'],
+        ['ActivePeriod', '2026-09', '', 'Income'],
+        ['DefaultCurrency', 'ZAR', '', 'Obligation'],
+      ]);
+
+    setupWorkbook(gateway);
+
+    expect(gateway.getSheet('Settings')?.readValues()).toEqual([
+      ['Key', 'Value', 'Description'],
+      ['ActivePeriod', '2026-09', ''],
+      ['DefaultCurrency', 'ZAR', ''],
+    ]);
+  });
 });

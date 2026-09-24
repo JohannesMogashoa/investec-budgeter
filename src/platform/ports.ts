@@ -94,6 +94,7 @@ export interface SheetPort {
   getLastColumn(): number;
   readValues(): SheetValue[][];
   writeValues(startRow: number, startColumn: number, values: SheetValue[][]): void;
+  clearValues(): void;
   appendValues(values: SheetValue[][]): void;
   applySetup(setup: SheetSetup): void;
 }
