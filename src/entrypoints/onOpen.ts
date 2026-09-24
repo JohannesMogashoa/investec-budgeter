@@ -2,6 +2,8 @@
 export function onOpen(): void {
   SpreadsheetApp.getUi()
     .createMenu('Investec Budgeter')
+    .addItem('Set up / migrate workbook', 'setupWorkbookSheets')
+    .addSeparator()
     .addItem('Test connection', 'testConnection')
     .addSeparator()
     .addItem('Refresh accounts', 'syncAccounts')

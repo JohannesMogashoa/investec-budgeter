@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 const bundle = await readFile(new URL('../dist/Code.js', import.meta.url), 'utf8');
 const requiredHandlers = [
   'onOpen',
+  'setupWorkbookSheets',
   'testConnection',
   'syncAccounts',
   'syncBalances',

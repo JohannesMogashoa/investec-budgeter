@@ -1,4 +1,4 @@
-import type { SheetGateway, SheetPort, SheetValue } from './ports';
+import type { SheetGateway, SheetPort, SheetSetup, SheetValue } from './ports';
 
 class AppsScriptSheet implements SheetPort {
   readonly name: string;
@@ -35,6 +35,28 @@ class AppsScriptSheet implements SheetPort {
 
   appendValues(values: SheetValue[][]): void {
     this.writeValues(this.getLastRow() + 1, 1, values);
+  }
+
+  applySetup(setup: SheetSetup): void {
+    this.sheet.setFrozenRows(setup.frozenRows);
+    this.sheet
+      .getRange(1, 1, 1, setup.columns.length)
+      .setBackground(setup.headerBackground)
+      .setFontColor(setup.headerFontColor)
+      .setFontWeight('bold');
+
+    const rowCount = Math.max(this.sheet.getMaxRows() - 1, 1);
+    setup.columns.forEach((column, index) => {
+      const range = this.sheet.getRange(2, index + 1, rowCount, 1);
+      if (column.numberFormat) range.setNumberFormat(column.numberFormat);
+      if (column.protected) {
+        const protection = range.protect();
+        protection.setDescription(`Investec Budgeter technical column ${index + 1}`);
+        protection.setWarningOnly(true);
+      }
+    });
+
+    if (setup.hidden) this.sheet.hideSheet();
   }
 }
 

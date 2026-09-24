@@ -1,19 +1,21 @@
 # Repository Guidelines
 
-This repository is currently an empty project scaffold. Keep this guide updated as application code, tooling, and tests are added.
+This repository contains the TypeScript source for the Phase 2 Google Apps Script integration. Keep this guide updated as application code, tooling, and tests are added.
 
 ## Project Structure & Module Organization
 
-Place production code in a clearly named source directory (for example, `src/`), tests in `test/` or `tests/`, and static resources in `assets/` or `public/`. Keep modules focused by feature or responsibility rather than accumulating unrelated utilities in one file. Add a short README section when introducing a new top-level directory.
+Production code lives in `src/`, tests in `tests/`, fixtures in `tests/fixtures/`, and build tooling in `scripts/`. Keep modules focused by feature or responsibility rather than accumulating unrelated utilities in one file. Add a short README section when introducing a new top-level directory.
 
 ## Build, Test, and Development Commands
 
-No build system or development commands are configured yet. When tooling is introduced, document the canonical commands here and in `README.md`, such as:
+Run commands from the repository root:
 
 - `npm install` — install locked dependencies.
-- `npm run dev` — start the local development server.
-- `npm test` — run the automated test suite.
+- `npm test` — run the Vitest suite.
+- `npm run typecheck` — run strict TypeScript checks.
 - `npm run lint` — check style and common defects.
+- `npm run build:check` — build and validate the Apps Script bundle.
+- `npm run format:check` — verify Prettier formatting.
 
 Prefer reproducible commands that work from the repository root, and commit the relevant lockfile.
 

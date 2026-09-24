@@ -11,6 +11,7 @@ import type {
   SecretStore,
   SheetGateway,
   SheetPort,
+  SheetSetup,
   SheetValue,
 } from '../../src/platform/ports';
 
@@ -111,6 +112,8 @@ export class FakeLogger implements Logger {
 }
 
 export class FakeSheet implements SheetPort {
+  setup?: SheetSetup;
+
   constructor(
     readonly name: string,
     private values: SheetValue[][] = [],
@@ -142,6 +145,10 @@ export class FakeSheet implements SheetPort {
 
   appendValues(values: SheetValue[][]): void {
     this.writeValues(this.getLastRow() + 1, 1, values);
+  }
+
+  applySetup(setup: SheetSetup): void {
+    this.setup = setup;
   }
 }
 

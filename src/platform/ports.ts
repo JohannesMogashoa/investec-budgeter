@@ -57,6 +57,19 @@ export interface Logger {
 
 export type SheetValue = string | number | boolean | null;
 
+export interface SheetColumnFormat {
+  readonly numberFormat?: string;
+  readonly protected?: boolean;
+}
+
+export interface SheetSetup {
+  readonly frozenRows: number;
+  readonly headerBackground: string;
+  readonly headerFontColor: string;
+  readonly columns: readonly SheetColumnFormat[];
+  readonly hidden?: boolean;
+}
+
 export interface SheetPort {
   readonly name: string;
   getLastRow(): number;
@@ -64,6 +77,7 @@ export interface SheetPort {
   readValues(): SheetValue[][];
   writeValues(startRow: number, startColumn: number, values: SheetValue[][]): void;
   appendValues(values: SheetValue[][]): void;
+  applySetup(setup: SheetSetup): void;
 }
 
 export interface SheetGateway {
