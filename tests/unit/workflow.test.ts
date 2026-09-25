@@ -20,6 +20,7 @@ function createFixture(branch = 'feat/spec-01-workflow') {
   mkdirSync(join(directory, 'scripts'), { recursive: true });
   cpSync('scripts/workflow-lib.mjs', join(directory, 'scripts/workflow-lib.mjs'));
   cpSync('scripts/workflow-check.mjs', join(directory, 'scripts/workflow-check.mjs'));
+  cpSync('scripts/workflow-attestation.mjs', join(directory, 'scripts/workflow-attestation.mjs'));
   writeFileSync(
     join(directory, '.workflow/config.json'),
     JSON.stringify({
@@ -117,5 +118,37 @@ describe('feature workflow gates', () => {
     expect(ci.output).toContain('no feature specification resolved');
     expect(prepush.status).not.toBe(0);
     expect(prepush.output).toContain('no SPEC ID detected');
+  });
+
+  it('allows only the documented first push before a remote attestation exists', () => {
+    const directory = createFixture();
+    const head = execFileSync('git', ['rev-parse', 'HEAD'], {
+      cwd: directory,
+      encoding: 'utf8',
+    }).trim();
+    const specPath = 'spec/SPEC-01-workflow.md';
+    const specHash = execFileSync('sha256sum', [specPath], {
+      cwd: directory,
+      encoding: 'utf8',
+    }).split(' ')[0];
+    mkdirSync(join(directory, '.workflow/local/SPEC-01'), { recursive: true });
+    writeFileSync(
+      join(directory, '.workflow/local/SPEC-01/readiness.json'),
+      JSON.stringify({
+        schemaVersion: 1,
+        type: 'readiness',
+        specId: 'SPEC-01',
+        specPath,
+        specHash,
+        verdict: 'PASS',
+        reviewedCommit: head,
+      }),
+    );
+
+    const result = run(directory, ['prepush']);
+
+    expect(result.status).toBe(0);
+    expect(result.output).toContain('FIRST PUSH ALLOWED');
+    expect(result.output).toContain('merge or deployment');
   });
 });

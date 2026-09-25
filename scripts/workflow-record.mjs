@@ -14,6 +14,7 @@ import {
   validReadiness,
   milestones,
   specStatus,
+  validTrustedAttestation,
 } from './workflow-lib.mjs';
 
 function fail(msg) {
@@ -91,6 +92,8 @@ if (type === 'prepush') {
     fail(
       'Cannot record pre-push PASS while the Git working tree is dirty. Commit/stash intended changes first.',
     );
+  if (!validTrustedAttestation(spec))
+    fail('Cannot record pre-push PASS without a valid GitHub-hosted workflow attestation.');
   runVerify();
   if (!isClean())
     fail(

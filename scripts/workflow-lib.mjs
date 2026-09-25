@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
+import { verifyAttestation } from './workflow-attestation.mjs';
 
 export const root = process.cwd();
 
@@ -34,6 +35,21 @@ export function headCommit() {
 
 export function isClean() {
   return git(['status', '--porcelain', '--untracked-files=normal']) === '';
+}
+
+export function isBootstrapPush() {
+  const branch = currentBranch();
+  if (!branch || loadConfig().protectedBranches.includes(branch)) return false;
+  try {
+    git(['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}']);
+    return false;
+  } catch {
+    try {
+      return git(['ls-remote', 'origin', `refs/heads/${branch}`]) === '';
+    } catch {
+      return true;
+    }
+  }
 }
 
 export function normalizeSpecId(value = '') {
@@ -152,6 +168,29 @@ export function validPrepush(spec) {
   );
 }
 
+export function validTrustedAttestation(spec) {
+  const config = loadConfig();
+  const attestation = config.attestation;
+  const subjectPath = process.env.WORKFLOW_ATTESTATION_SUBJECT || attestation?.subjectPath;
+  const repository = process.env.GITHUB_REPOSITORY || attestation?.repository;
+  const signerWorkflow = attestation?.signerWorkflow;
+  if (!subjectPath || !repository || !signerWorkflow || !fs.existsSync(subjectPath)) return false;
+  try {
+    const result = verifyAttestation({ subjectPath, repository, signerWorkflow });
+    const manifest = JSON.parse(fs.readFileSync(subjectPath, 'utf8'));
+    return (
+      result &&
+      manifest.repository === repository &&
+      manifest.spec?.id === spec.id &&
+      manifest.spec?.path === spec.relativePath &&
+      manifest.spec?.sha256 === specHash(spec.text) &&
+      manifest.headCommit === headCommit()
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function runVerify() {
   const config = loadConfig();
   const result = spawnSync(config.verifyCommand, { cwd: root, shell: true, stdio: 'inherit' });
@@ -164,7 +203,8 @@ export function statusFor(spec) {
   const readiness = validReadiness(spec);
   const milestoneStatus = ms.map((n) => ({ milestone: n, pass: validMilestone(spec, n) }));
   const allMilestones = ms.length > 0 && milestoneStatus.every((x) => x.pass);
-  const prepush = allMilestones && validPrepush(spec);
+  const trustedAttestation = validTrustedAttestation(spec);
+  const prepush = allMilestones && validPrepush(spec) && trustedAttestation;
 
   let next;
   if (status !== 'LOCKED') next = 'REFINE_SPEC';
@@ -172,8 +212,10 @@ export function statusFor(spec) {
   else {
     const pending = milestoneStatus.find((x) => !x.pass);
     if (pending) next = `MILESTONE_${pending.milestone}_IMPLEMENT_OR_REVIEW`;
+    else if (isBootstrapPush()) next = 'FIRST_PUSH_BOOTSTRAP_ALLOWED';
+    else if (!trustedAttestation) next = 'TRUSTED_ATTESTATION_VERIFY';
     else if (!prepush) next = 'PRE_PUSH_REVIEW';
     else next = 'READY_TO_PUSH';
   }
-  return { status, milestones: milestoneStatus, readiness, prepush, next };
+  return { status, milestones: milestoneStatus, readiness, trustedAttestation, prepush, next };
 }

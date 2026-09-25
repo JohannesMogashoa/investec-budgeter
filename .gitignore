@@ -13,3 +13,4 @@ staging-deployment-evidence.txt
 *.local
 .codex/config.local.toml
 .workflow/local/
+.workflow/attestation/
