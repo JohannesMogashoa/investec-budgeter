@@ -77,13 +77,13 @@
                   "data": {
                     "accounts": [
                       {
-                        "accountId": "3353431574710163189587446",
-                        "accountNumber": "10101010101",
+                        "accountId": "example-account-id",
+                        "accountNumber": "0000000000",
                         "accountName": "Mr John Doe",
                         "referenceName": "My Investec Private Bank Account",
                         "productName": "Private Bank Account",
                         "kycCompliant": true,
-                        "profileId": "10163189587443",
+                        "profileId": "example-profile-id",
                         "profileName": "My Profile"
                       }
                     ]
@@ -164,7 +164,7 @@
                 },
                 "example": {
                   "data": {
-                    "accountId": "172878438321553632224",
+                    "accountId": "example-account-id",
                     "currentBalance": 28857.76,
                     "availableBalance": 98857.76,
                     "budgetBalance": 0,
@@ -279,7 +279,7 @@
                   "data": {
                     "transactions": [
                       {
-                        "accountId": "172878438321553632224",
+                        "accountId": "example-account-id",
                         "type": "DEBIT",
                         "transactionType": "FeesAndInterest",
                         "status": "POSTED",
@@ -295,7 +295,7 @@
                         "uuid": "32224202006110013379"
                       },
                       {
-                        "accountId": "172878438321553632224",
+                        "accountId": "example-account-id",
                         "type": "CREDIT",
                         "transactionType": "FeesAndInterest",
                         "status": "POSTED",
@@ -378,7 +378,7 @@
                   "data": {
                     "transactions": [
                       {
-                        "accountId": "172878438321553632224",
+                        "accountId": "example-account-id",
                         "type": "DEBIT",
                         "status": "PENDING",
                         "description": "MONTHLY SERVICE CHARGE",
@@ -497,7 +497,7 @@
                     "theirReference": "Trans from PBA to PS"
                   }
                 ],
-                "profileId": "10163189587443"
+                "profileId": "example-profile-id"
               }
             }
           }
@@ -525,7 +525,7 @@
                     "ErrorMessage": null
                   },
                   "links": {
-                    "self": "https://openapi.investec.com/za/pb/v1/accounts/172878438321553632224/transfermultiple"
+                    "self": "https://openapi.investec.com/za/pb/v1/accounts/example-account-id/transfermultiple"
                   },
                   "meta": {
                     "totalPages": 1
@@ -583,7 +583,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "3353431574710163189587446"
+            "example": "example-account-id"
           }
         ],
         "requestBody": {
@@ -736,7 +736,7 @@
                   "data": [
                     {
                       "beneficiaryId": "MTAxOTAxOTyNTQMTU=",
-                      "accountNumber": "6241708900",
+                      "accountNumber": "0000000000",
                       "code": "250655",
                       "bank": "FIRST NATIONAL BANK",
                       "beneficiaryName": "Ad A AIA",
@@ -748,7 +748,7 @@
                       "referenceAccountNumber": "NIC036",
                       "referenceName": "amingFra ing Framin",
                       "categoryId": "10164601247279",
-                      "profileId": "10163189587443",
+                      "profileId": "example-profile-id",
                       "fasterPaymentAllowed": true
                     }
                   ],
@@ -863,7 +863,7 @@
                 "example": {
                   "data": [
                     {
-                      "profileId": "10163189587444",
+                      "profileId": "example-profile-id",
                       "profileName": "Profile A",
                       "defaultProfile": true
                     }
@@ -932,13 +932,13 @@
                 "example": {
                   "data": [
                     {
-                      "accountId": "172878438321553632224",
-                      "accountNumber": "10010206147",
+                      "accountId": "example-account-id",
+                      "accountNumber": "0000000000",
                       "accountName": "Mr John Doe",
                       "referenceName": "My Investec Private Bank Account",
                       "productName": "Private Bank Account",
                       "kycCompliant": true,
-                      "profileId": "10163189587443",
+                      "profileId": "example-profile-id",
                       "profileName": "My Profile"
                     }
                   ],
@@ -1164,7 +1164,7 @@
                   "data": [
                     {
                       "beneficiaryId": "MTAxOTAxOTyNTQMTU=",
-                      "accountNumber": "6241708900",
+                      "accountNumber": "0000000000",
                       "code": "250655",
                       "bank": "FIRST NATIONAL BANK",
                       "beneficiaryName": "Ad A AIA",
@@ -1176,7 +1176,7 @@
                       "referenceAccountNumber": "NIC036",
                       "referenceName": "amingFra ing Framin",
                       "categoryId": "10164601247279",
-                      "profileId": "10163189587443",
+                      "profileId": "example-profile-id",
                       "fasterPaymentAllowed": true
                     }
                   ],
