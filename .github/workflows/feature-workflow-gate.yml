@@ -1,0 +1,57 @@
+name: Feature Workflow Gate
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - '.workflow/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig*.json'
+      - 'vitest.config.*'
+      - 'eslint.config.*'
+      - '.prettierrc*'
+      - 'prettier.config.*'
+      - '.github/workflows/feature-workflow-gate.yml'
+
+  push:
+    branches:
+      - development
+      - staging
+      - master
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - '.workflow/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig*.json'
+      - 'vitest.config.*'
+      - 'eslint.config.*'
+      - '.prettierrc*'
+      - 'prettier.config.*'
+      - '.github/workflows/feature-workflow-gate.yml'
+
+jobs:
+  workflow-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Validate workflow structure
+        run: node scripts/workflow-check.mjs ci
+
+      - name: Repository verification
+        run: npm run verify

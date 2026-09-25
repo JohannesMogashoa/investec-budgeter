@@ -1,0 +1,40 @@
+{
+  "validation": {
+    "description": "Changes that should run repository verification / feature workflow CI.",
+    "paths": [
+      "src/**",
+      "tests/**",
+      "scripts/**",
+      ".workflow/**",
+      "package.json",
+      "package-lock.json",
+      "tsconfig*.json",
+      "vitest.config.*",
+      "eslint.config.*",
+      ".prettierrc*",
+      "prettier.config.*",
+      ".github/workflows/feature-workflow-gate.yml"
+    ]
+  },
+  "deployment": {
+    "description": "Changes that can alter the deployable Apps Script artifact or deployment process.",
+    "paths": [
+      "src/**",
+      "scripts/**",
+      "package.json",
+      "package-lock.json",
+      "tsconfig*.json",
+      "appsscript.json",
+      ".clasp.json",
+      "clasp*.json",
+      ".github/workflows/deploy-*.yml"
+    ]
+  },
+  "nonDeployingExamples": [
+    "docs/**",
+    "spec/**",
+    ".agents/**",
+    "README.md",
+    "CONTRIBUTING.md"
+  ]
+}

@@ -1,0 +1,20 @@
+# Merge this trigger into the repository's existing staging deployment workflow.
+# This example intentionally omits deployment jobs/steps.
+name: Staging Deployment (Path Filter Example)
+
+on:
+  push:
+    branches:
+      - staging
+    paths:
+      - 'src/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig*.json'
+      - 'appsscript.json'
+      - '.clasp.json'
+      - 'clasp*.json'
+      - '.github/workflows/deploy-*.yml'
+
+jobs: {}

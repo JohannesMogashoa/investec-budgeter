@@ -18,7 +18,12 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build:check"
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build:check",
+    "workflow:status": "node scripts/workflow-check.mjs status",
+    "workflow:prepush": "node scripts/workflow-check.mjs prepush",
+    "workflow:ci": "node scripts/workflow-check.mjs ci",
+    "workflow:record": "node scripts/workflow-record.mjs",
+    "workflow:install": "node scripts/install-feature-workflow.mjs"
   },
   "devDependencies": {
     "@types/google-apps-script": "^1.0.90",

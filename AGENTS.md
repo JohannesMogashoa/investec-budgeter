@@ -310,3 +310,24 @@ A feature or milestone is complete only when all of the following are true:
 10. No unresolved scope creep or spec ambiguity remains.
 
 Only then may the change proceed through the repository's normal merge and deployment process.
+
+---
+
+## Feature Workflow Enforcement
+
+The normal entry point for feature work is the `feature-workflow` skill. Specialist skills remain authoritative for their phase, but contributors and agents should not manually skip lifecycle gates.
+
+Required order:
+
+`requirement → spec/refinement → LOCKED → spec-readiness PASS → sequential milestone implementation/QA → pre-push PASS → push`
+
+Rules:
+
+- A `REVIEW` or `DRAFT` spec cannot enter implementation.
+- Human/product decisions that are not resolved by authoritative repository contracts must pause the workflow.
+- Milestones are implemented and reviewed sequentially.
+- A failed milestone review must be fixed and re-reviewed before later milestones begin.
+- A spec change invalidates prior readiness/milestone evidence through spec-hash validation.
+- The final pre-push PASS is valid only for the exact reviewed `HEAD`.
+- `git push` is blocked by local workflow gates until `READY_TO_PUSH`.
+- Never bypass the workflow gate to make progress. Resolve the blocking state instead.

@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+set -eu
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+node scripts/workflow-check.mjs prepush
