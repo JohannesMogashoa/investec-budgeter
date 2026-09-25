@@ -1,19 +1,33 @@
 # Codex Project Configuration
 
-This directory contains repository-shared Codex configuration and reusable engineering workflows.
+This directory contains repository-shared Codex configuration.
 
-## Files
+## `config.toml`
+Contains safe project-level Codex/MCP configuration only.
 
-- `config.toml` — safe, shared project-level Codex/MCP configuration.
-- `prompts/create-spec.md` — create a specification.
-- `prompts/refine-spec.md` — resolve and lock a specification.
-- `prompts/implement-spec.md` — implement one locked milestone.
-- `prompts/review-spec.md` — perform AC-driven QA.
-- `prompts/fix-review.md` — fix review findings without scope expansion.
-- `prompts/investigate.md` — read-only investigation.
-- `prompts/explain.md` — contributor-oriented explanation.
+It does **not** register custom slash commands.
 
-`AGENTS.md` remains the governing engineering constitution.
+## Reusable Workflows
+Repository workflows are implemented as Codex skills under:
+
+`.agents/skills/<skill-name>/SKILL.md`
+
+Examples of natural invocation:
+
+```text
+Create a spec for INV-17.
+Use the create-spec skill for INV-17.
+
+Implement milestone 1 of SPEC-INV-17.
+Use the review-spec skill to review milestone 1 of SPEC-INV-17.
+
+Investigate why transaction deduplication is failing.
+```
+
+Codex should select an applicable skill from its description. Explicitly naming the skill is useful when you want deterministic workflow selection.
+
+## Built-in Slash Commands
+Slash commands exposed directly by Codex CLI are product-provided commands. Do not assume that adding Markdown files to this repository creates new `/command` entries.
 
 ## Secrets
-Do not put credentials in this directory. Shared MCP definitions must use safe authentication mechanisms/environment variables. Machine-specific integrations belong in user-level Codex configuration where possible.
+Never commit credentials here. Contributor-specific credentials and machine-specific MCP setup belong in environment variables or user-level Codex configuration.

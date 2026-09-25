@@ -14,20 +14,26 @@ Do not implement a feature without a `LOCKED` specification.
 ## Normal Workflow
 
 ```text
-/create-spec
+Create/refine spec using the repository skills
     ↓
 human/spec review
     ↓
-/refine-spec (when needed)
-    ↓
 LOCKED spec
     ↓
-/implement-spec <spec> <milestone>
+implement-spec skill for one milestone
     ↓
-/review-spec <spec> <milestone>
+review-spec skill
     ↓
 PASS → pull request
-FAIL → /fix-review → review again
+FAIL → fix-review skill → review again
+```
+
+These are **skills, not custom slash commands**. Example prompts:
+
+```text
+Use the create-spec skill for INV-17.
+Implement milestone 1 of SPEC-INV-17.
+Review milestone 1 of SPEC-INV-17 against its acceptance criteria.
 ```
 
 ## Branches
@@ -80,6 +86,6 @@ Never commit:
 Use safe placeholders and environment variables.
 
 ## Codex
-Repository-level Codex configuration lives in `.codex/config.toml`. Shared reusable workflows live in `.codex/prompts/`.
+Repository-level Codex configuration lives in `.codex/config.toml`. Shared reusable workflows live as Codex skills in `.agents/skills/`.
 
 Machine-specific configuration and credentials should remain outside the repository, normally in user-level Codex configuration.
