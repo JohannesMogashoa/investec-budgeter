@@ -30,11 +30,5 @@
       ".github/workflows/deploy-*.yml"
     ]
   },
-  "nonDeployingExamples": [
-    "docs/**",
-    "spec/**",
-    ".agents/**",
-    "README.md",
-    "CONTRIBUTING.md"
-  ]
+  "nonDeployingExamples": ["docs/**", "spec/**", ".agents/**", "README.md", "CONTRIBUTING.md"]
 }
