@@ -107,7 +107,8 @@ The repository will use GitHub Actions artifact attestations as the authoritativ
 
 - `contents: read`;
 - `id-token: write`; and
-- `attestations: write`.
+- `attestations: write`; and
+- `artifact-metadata: write` for the GitHub artifact subject record.
 
 The manifest must contain only workflow identifiers, hashes, commit references, review/verification results, and non-sensitive metadata. It must not contain credentials, account data, provider payloads, or bearer tokens. Verification must use `gh attestation verify` against this repository and inspect the predicate contents, repository identity, workflow identity, commit, and spec/milestone bindings.
 

@@ -50,7 +50,7 @@ The first push of a new feature branch is allowed before GitHub can issue an att
 
 ## Security & Data Impact
 
-The attested manifest contains hashes, commit/spec/milestone identifiers, workflow identity, and verification results only. It must never contain credentials, account identifiers, provider payloads, or access tokens. Workflow permissions must be least-privilege: `contents: read`, `id-token: write`, and `attestations: write`, with no unnecessary write permissions.
+The attested manifest contains hashes, commit/spec/milestone identifiers, workflow identity, and verification results only. It must never contain credentials, account identifiers, provider payloads, or access tokens. Workflow permissions must be least-privilege: `contents: read`, `id-token: write`, `attestations: write`, and `artifact-metadata: write` for the attestation subject record, with no unnecessary write permissions.
 
 ## Operational Impact
 
