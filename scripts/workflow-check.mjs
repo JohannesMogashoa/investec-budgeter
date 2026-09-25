@@ -8,6 +8,7 @@ import {
   milestones,
   loadConfig,
   currentBranch,
+  isBootstrapPush,
 } from './workflow-lib.mjs';
 
 function fail(message, code = 1) {
@@ -63,6 +64,7 @@ if (command === 'status') {
   console.log(`${spec.id} — ${spec.relativePath}`);
   console.log(`Spec status: ${state.status}`);
   console.log(`Readiness review: ${state.readiness ? 'PASS' : 'PENDING'}`);
+  console.log(`Trusted attestation: ${state.trustedAttestation ? 'PASS' : 'PENDING'}`);
   for (const m of state.milestones)
     console.log(`Milestone ${m.milestone} QA: ${m.pass ? 'PASS' : 'PENDING'}`);
   console.log(`Pre-push review: ${state.prepush ? 'PASS' : 'PENDING'}`);
@@ -71,6 +73,12 @@ if (command === 'status') {
 }
 
 if (command === 'prepush') {
+  if (isBootstrapPush() && state.status === 'LOCKED' && state.readiness) {
+    console.log(
+      `FIRST PUSH ALLOWED — ${spec.id} has no published remote branch; GitHub attestation is required after publication before merge or deployment.`,
+    );
+    process.exit(0);
+  }
   if (state.next !== 'READY_TO_PUSH') {
     fail(
       [
@@ -78,6 +86,7 @@ if (command === 'prepush') {
         `Spec: ${spec.id}`,
         `Spec status: ${state.status}`,
         `Readiness: ${state.readiness ? 'PASS' : 'PENDING'}`,
+        `Trusted attestation: ${state.trustedAttestation ? 'PASS' : 'PENDING'}`,
         ...state.milestones.map(
           (m) => `Milestone ${m.milestone} QA: ${m.pass ? 'PASS' : 'PENDING'}`,
         ),

@@ -3,5 +3,10 @@
   "evidenceDirectory": ".workflow/local",
   "defaultBaseBranch": "development",
   "protectedBranches": ["development", "staging", "master"],
-  "verifyCommand": "npm run verify"
+  "verifyCommand": "npm run verify",
+  "attestation": {
+    "subjectPath": ".workflow/attestation/manifest.json",
+    "repository": "JohannesMogashoa/investec-budgeter",
+    "signerWorkflow": "JohannesMogashoa/investec-budgeter/.github/workflows/feature-workflow-attestation.yml"
+  }
 }

@@ -1,0 +1,58 @@
+name: Feature Workflow Attestation
+
+on:
+  pull_request_target:
+    branches: [development, staging, master]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+  id-token: write
+  attestations: write
+  artifact-metadata: write
+
+jobs:
+  attest:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out trusted base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Fetch candidate pull-request commit
+        run: git fetch origin ${{ github.event.pull_request.head.sha }} --depth=1
+
+      - name: Generate canonical workflow manifest
+        id: context
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WORKFLOW_SPEC_ID: ${{ vars.WORKFLOW_SPEC_ID }}
+        run: node scripts/workflow-attestation-context.mjs
+
+      - name: Create GitHub-hosted attestation
+        uses: actions/attest@v4
+        with:
+          subject-path: .workflow/attestation/manifest.json
+          predicate-type: https://investec-budgeter.dev/workflow-attestation/v1
+          predicate-path: .workflow/attestation/manifest.json
+
+      - name: Verify GitHub-hosted attestation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          node scripts/workflow-attestation.mjs verify
+          --subject .workflow/attestation/manifest.json
+          --repo ${{ github.repository }}
+          --signer-workflow ${{ github.repository }}/.github/workflows/feature-workflow-attestation.yml
