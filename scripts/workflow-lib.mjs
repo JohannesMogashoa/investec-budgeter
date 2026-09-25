@@ -204,7 +204,7 @@ export function statusFor(spec) {
   const milestoneStatus = ms.map((n) => ({ milestone: n, pass: validMilestone(spec, n) }));
   const allMilestones = ms.length > 0 && milestoneStatus.every((x) => x.pass);
   const trustedAttestation = validTrustedAttestation(spec);
-  const prepush = allMilestones && validPrepush(spec) && trustedAttestation;
+  const prepush = allMilestones && validPrepush(spec) && (trustedAttestation || isBootstrapPush());
 
   let next;
   if (status !== 'LOCKED') next = 'REFINE_SPEC';

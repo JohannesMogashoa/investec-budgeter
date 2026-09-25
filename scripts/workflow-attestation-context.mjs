@@ -39,6 +39,17 @@ function authorizedReviewer(repository, pullNumber) {
   throw new Error('No approved review from a repository maintainer is available.');
 }
 
+function workflowGate(repository, headCommit) {
+  const response = JSON.parse(
+    gh([`repos/${repository}/commits/${headCommit}/check-runs`]),
+  ).check_runs;
+  const check = response.find((run) => run.name === 'Feature Workflow Gate / workflow-gate');
+  if (!check) return { reference: 'workflow-gate:not-required' };
+  if (check.conclusion !== 'success')
+    throw new Error('Feature Workflow Gate has not passed for this commit.');
+  return { reference: `check-run:${check.id}` };
+}
+
 function specFor(headCommit, specId) {
   const paths = git(['ls-tree', '-r', '--name-only', headCommit, 'spec'])
     .split('\n')
@@ -63,6 +74,7 @@ if (payload.pull_request.head.repo.full_name !== repository)
   throw new Error('Fork pull requests cannot issue workflow attestations.');
 
 const reviewer = authorizedReviewer(repository, pullNumber);
+const gate = workflowGate(repository, headCommit);
 const spec = specFor(headCommit, process.env.WORKFLOW_SPEC_ID);
 const manifest = buildManifest({
   repository,
@@ -80,7 +92,7 @@ const manifest = buildManifest({
       milestone: null,
       verification: 'PASS',
       verificationCommand: 'npm run verify',
-      verificationReference: `workflow-run:${process.env.GITHUB_RUN_ID}`,
+      verificationReference: `${gate.reference};workflow-run:${process.env.GITHUB_RUN_ID}`,
       reviewer,
       authorization: 'required-maintainer-review',
       reviewedAt: new Date().toISOString(),
