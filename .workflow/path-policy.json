@@ -27,7 +27,8 @@
       "appsscript.json",
       ".clasp.json",
       "clasp*.json",
-      ".github/workflows/deploy-*.yml"
+      ".github/workflows/staging.yml",
+      ".github/workflows/production.yml"
     ]
   },
   "nonDeployingExamples": ["docs/**", "spec/**", ".agents/**", "README.md", "CONTRIBUTING.md"]
