@@ -10,6 +10,7 @@ Operate as the **QA & Code Reviewer Agent**.
 Read `AGENTS.md`, the complete target spec, relevant ADRs, and the implementation diff.
 
 ## Procedure
+
 1. Enumerate every applicable AC.
 2. Inspect implementation evidence for each AC.
 3. Inspect test evidence for each AC.
@@ -18,10 +19,13 @@ Read `AGENTS.md`, the complete target spec, relevant ADRs, and the implementatio
 6. Do not invent requirements.
 
 ## Findings
+
 For each blocking finding include severity, spec/AC reference, file/location, observed behavior, required behavior, and minimal remediation.
 
 ## Verdict
+
 Return exactly one:
+
 - `PASS`
 - `FAIL`
 - `BLOCKED — SPEC UPDATE REQUIRED`

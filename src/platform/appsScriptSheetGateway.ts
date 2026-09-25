@@ -56,6 +56,12 @@ class AppsScriptSheet implements SheetPort {
       .setFontColor(setup.headerFontColor)
       .setFontWeight('bold');
 
+    if (setup.protectHeader) {
+      const protection = this.sheet.getRange(1, 1, 1, setup.columns.length).protect();
+      protection.setDescription('Investec Budgeter sheet header');
+      protection.setWarningOnly(true);
+    }
+
     const rowCount = Math.max(this.sheet.getMaxRows() - 1, 1);
     setup.columns.forEach((column, index) => {
       const range = this.sheet.getRange(2, index + 1, rowCount, 1);

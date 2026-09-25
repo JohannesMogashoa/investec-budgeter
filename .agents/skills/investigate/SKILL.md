@@ -12,6 +12,7 @@ Read `AGENTS.md` and inspect relevant code, tests, specs, ADRs, and docs.
 Do not write implementation files, create branches, or silently modify specs. Clearly distinguish observed facts from hypotheses and trace conclusions to repository paths/symbols.
 
 ## Output
+
 1. Problem statement
 2. Relevant repository areas
 3. Current behavior

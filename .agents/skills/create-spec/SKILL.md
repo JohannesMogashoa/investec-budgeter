@@ -8,6 +8,7 @@ description: Create a rigorous repository specification from a Notion task, GitH
 Operate as the **Spec Architect Agent** defined in `AGENTS.md`.
 
 ## Read First
+
 1. `AGENTS.md`
 2. `spec/SPEC-TEMPLATE.md`
 3. Relevant existing specs
@@ -15,11 +16,13 @@ Operate as the **Spec Architect Agent** defined in `AGENTS.md`.
 5. Relevant repository code/docs only as needed to understand current contracts
 
 ## Input Resolution
+
 The request may reference a Notion task, GitHub issue, pasted requirement, or feature description.
 
 If an external task is referenced and the required integration is unavailable, ask for the task content. Never invent missing requirements.
 
 ## Procedure
+
 1. Acquire the authoritative requirement.
 2. Identify ambiguity, dependencies, invariants, failure modes, security implications, data handling, and explicit exclusions.
 3. Determine a stable spec ID and slug.
@@ -31,9 +34,11 @@ If an external task is referenced and the required integration is unavailable, a
 9. Mark `LOCKED` only when all material ambiguity is resolved.
 
 ## Git Boundary
+
 Do not create an implementation feature branch while drafting the spec. Branch creation belongs to the implementation workflow after the spec is `LOCKED`.
 
 ## Prohibited
+
 - Production implementation code
 - Changes to `src/` or implementation tests
 - Invented business logic
@@ -41,4 +46,5 @@ Do not create an implementation feature branch while drafting the spec. Branch c
 - Locking a spec merely to unblock development
 
 ## Handoff
+
 Report the spec path, ID/version, status, milestones, AC summary, open questions, and any required ADRs.
