@@ -144,9 +144,9 @@ Avoid speculative or cosmetic findings.
 
 ## 11. Acceptance Criteria Matrix
 
-| Acceptance Criterion | Implementation | Test Evidence | Result |
-|---|---|---|---|
-| AC-x.y | file/symbol | test/file | PASS/FAIL/NOT VERIFIED |
+| Acceptance Criterion | Implementation | Test Evidence | Result                 |
+| -------------------- | -------------- | ------------- | ---------------------- |
+| AC-x.y               | file/symbol    | test/file     | PASS/FAIL/NOT VERIFIED |
 
 Include every applicable AC.
 

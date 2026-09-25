@@ -45,14 +45,17 @@ Follow this order and never skip a gate:
 ## Phase Procedures
 
 ### No spec exists
+
 Read and execute `.agents/skills/create-spec/SKILL.md`.
 
 ### Spec is DRAFT or REVIEW
+
 Read and execute `.agents/skills/refine-spec/SKILL.md`.
 
 If unsupported product/domain decisions remain, stop at `DECISION_REQUIRED`. Present structured decision requests and wait for the developer's answer. Never choose product semantics merely to continue the workflow.
 
 ### Spec becomes LOCKED
+
 Run `.agents/skills/spec-readiness-review/SKILL.md`.
 
 - PASS: record readiness evidence and continue.
@@ -60,6 +63,7 @@ Run `.agents/skills/spec-readiness-review/SKILL.md`.
 - If refinement requires human decisions, stop at `DECISION_REQUIRED`.
 
 ### Milestones
+
 Implement milestones in numeric order only.
 
 For each milestone without valid PASS evidence:
@@ -80,6 +84,7 @@ The record command runs the required verification suite before creating PASS evi
 Do not begin milestone N+1 until milestone N has valid PASS evidence.
 
 ### Final gate
+
 When all milestones have valid PASS evidence:
 
 1. Read `.agents/skills/pre-push-code-review/SKILL.md`.

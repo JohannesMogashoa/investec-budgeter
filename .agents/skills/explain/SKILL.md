@@ -10,6 +10,7 @@ Read `AGENTS.md` and prefer existing specs, ADRs, docs, code, and tests over ass
 Do not modify files. State when behavior is undocumented or ambiguous. Call out security and financial-data boundaries when relevant.
 
 Explain:
+
 1. What it is
 2. Why it exists
 3. Key files/modules

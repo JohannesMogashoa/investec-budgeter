@@ -15,7 +15,7 @@ This workflow is read-only. Do not modify the specification or implementation.
 2. Read the complete target specification.
 3. Confirm `Status: LOCKED`. If not, return `BLOCKED — SPEC NOT LOCKED`.
 4. Read relevant ADRs, architecture docs, and repository contracts.
-5. Attempt to prove the spec is *not* implementation-ready.
+5. Attempt to prove the spec is _not_ implementation-ready.
 6. Inspect specifically for:
    - contradictory invariants;
    - unreachable acceptance criteria;
