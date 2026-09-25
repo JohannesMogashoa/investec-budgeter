@@ -1,0 +1,7 @@
+{
+  "specDirectory": "spec",
+  "evidenceDirectory": ".workflow/local",
+  "defaultBaseBranch": "development",
+  "protectedBranches": ["development", "staging", "master"],
+  "verifyCommand": "npm run verify"
+}

@@ -12,3 +12,4 @@ staging-deployment-evidence.txt
 # Local secrets / overrides
 *.local
 .codex/config.local.toml
+.workflow/local/

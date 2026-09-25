@@ -10,6 +10,7 @@ Operate as the **Spec Architect Agent**.
 Read `AGENTS.md`, the target spec, `spec/SPEC-TEMPLATE.md`, relevant ADRs, and supplied clarifications.
 
 ## Procedure
+
 1. Find unresolved questions, TODOs, contradictions, vague ACs, undefined failure modes, and missing security/data rules.
 2. Apply only supported clarifications.
 3. Make scope and exclusions explicit.
