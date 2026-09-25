@@ -2,7 +2,10 @@
 
 1. Copy `.env.example` to `.env` and fill in the local sandbox credentials. The file is ignored by
    Git and is for local reference only.
-2. Run `Set up / migrate workbook`.
+2. Run `Set up / migrate workbook`. The known V1.3 `Transactions` layout is copied to a hidden
+   `_Archive_Transactions_V1_3` tab before the active tab is rebuilt for Phase 2. Review the archive
+   if it contains anything beyond template/demo rows; other unrecognized header layouts still stop
+   setup safely.
 3. Configure the same sandbox credentials through the credential modal. Credentials are stored
    only in Apps Script properties.
 4. Run `Test connection`.

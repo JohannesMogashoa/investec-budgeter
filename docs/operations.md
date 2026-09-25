@@ -38,10 +38,11 @@ bank transaction temporarily unavailable.
 
 ## Schema and deployment recovery
 
-If setup reports incompatible headers, stop and preserve the workbook copy. Export or duplicate
-the workbook before making changes, compare the headers with `docs/data-dictionary.md`, and
-resolve the migration as a reviewed code change. Do not manually rename system columns to force
-setup to continue.
+Setup archives the recognized V1.3 `Transactions` tab to a hidden `_Archive_Transactions_V1_3`
+sheet before rebuilding the active tab; review that archive if it contains anything beyond
+template/demo data. If setup reports any other incompatible headers, stop and preserve the
+workbook copy. Compare the headers with `docs/data-dictionary.md` and resolve the migration as a
+reviewed code change. Do not manually rename system columns to force setup to continue.
 
 Deploy only the generated `dist/` bundle. The staging workflow runs for the protected `staging`
 branch and uses a separate Apps Script project and sandbox credentials. Production deployment is

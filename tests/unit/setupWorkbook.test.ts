@@ -100,4 +100,133 @@ describe('setupWorkbook', () => {
       ['Current tracker', 'Spending Tracker 2026', ''],
     ]);
   });
+
+  it('archives and rebuilds the known V1.3 Transactions layout', () => {
+    const gateway = new FakeSheetGateway();
+    const legacyRows = [
+      ['Transactions — Canonical Ledger'],
+      [],
+      [
+        'TransactionId',
+        'ProviderTransactionKey',
+        'AccountId',
+        'TransactionDate',
+        'PostingDate',
+        'Description',
+        'Direction',
+        'Amount',
+        'SignedCashAmount',
+        'Currency',
+        'RunningBalance',
+        'TransactionType',
+        'PostedOrder',
+        'ImportState',
+        'MatchingState',
+        'CategoryId',
+        'AllocatedAmount',
+        'UnallocatedAmount',
+      ],
+      ['demo-1', 'provider-1', 'account-1', '2026-09-01', '2026-09-01', 'demo row'],
+    ];
+    const sheet = gateway.createSheet('Transactions');
+    sheet.writeValues(1, 1, legacyRows);
+
+    const result = setupWorkbook(gateway);
+
+    expect(result.archivedSheets).toEqual(['_Archive_Transactions_V1_3']);
+    expect(gateway.getSheet('_Archive_Transactions_V1_3')?.readValues()).toEqual(legacyRows);
+    expect(sheet.readValues()[0]).toEqual(
+      SCHEMA_MANIFEST.find((schema) => schema.name === 'Transactions')?.headers,
+    );
+    expect(sheet.readValues()).toHaveLength(1);
+    expect(setupWorkbook(gateway).archivedSheets).toEqual([]);
+  });
+
+  it('uses a unique archive name when the preferred archive already exists', () => {
+    const gateway = new FakeSheetGateway();
+    gateway.createSheet('_Archive_Transactions_V1_3');
+    gateway
+      .createSheet('Transactions')
+      .writeValues(1, 1, [
+        ['Transactions — Canonical Ledger'],
+        [],
+        [
+          'TransactionId',
+          'ProviderTransactionKey',
+          'AccountId',
+          'TransactionDate',
+          'PostingDate',
+          'Description',
+          'Direction',
+          'Amount',
+          'SignedCashAmount',
+          'Currency',
+          'RunningBalance',
+          'TransactionType',
+          'PostedOrder',
+          'ImportState',
+          'MatchingState',
+          'CategoryId',
+          'AllocatedAmount',
+          'UnallocatedAmount',
+        ],
+        ['demo-1'],
+      ]);
+
+    const result = setupWorkbook(gateway);
+
+    expect(result.archivedSheets).toEqual(['_Archive_Transactions_V1_3_2']);
+    expect(gateway.getSheet('_Archive_Transactions_V1_3_2')?.readValues()[3]?.[0]).toBe('demo-1');
+  });
+
+  it('refuses an unrecognized transaction layout', () => {
+    const gateway = new FakeSheetGateway();
+    gateway
+      .createSheet('Transactions')
+      .writeValues(1, 1, [
+        ['Transactions — Canonical Ledger'],
+        [],
+        ['TransactionId', 'Unexpected Header'],
+      ]);
+
+    expect(() => setupWorkbook(gateway)).toThrow(IncompatibleWorkbookError);
+    expect(gateway.getSheet('_Archive_Transactions_V1_3')).toBeUndefined();
+  });
+
+  it('preflights every sheet before archiving a recognized legacy Transactions tab', () => {
+    const gateway = new FakeSheetGateway();
+    gateway
+      .createSheet('Transactions')
+      .writeValues(1, 1, [
+        ['Transactions — Canonical Ledger'],
+        [],
+        [
+          'TransactionId',
+          'ProviderTransactionKey',
+          'AccountId',
+          'TransactionDate',
+          'PostingDate',
+          'Description',
+          'Direction',
+          'Amount',
+          'SignedCashAmount',
+          'Currency',
+          'RunningBalance',
+          'TransactionType',
+          'PostedOrder',
+          'ImportState',
+          'MatchingState',
+          'CategoryId',
+          'AllocatedAmount',
+          'UnallocatedAmount',
+        ],
+      ]);
+    gateway.createSheet('Accounts').writeValues(1, 1, [['Old Account', 'Old Balance']]);
+
+    expect(() => setupWorkbook(gateway)).toThrow(IncompatibleWorkbookError);
+    expect(gateway.getSheet('_Archive_Transactions_V1_3')).toBeUndefined();
+    expect(gateway.getSheet('Transactions')?.readValues()[0]?.[0]).toBe(
+      'Transactions — Canonical Ledger',
+    );
+  });
 });

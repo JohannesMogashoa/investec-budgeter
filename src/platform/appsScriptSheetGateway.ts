@@ -37,6 +37,13 @@ class AppsScriptSheet implements SheetPort {
     this.sheet.getDataRange().clearContent();
   }
 
+  clearForSchemaMigration(): void {
+    this.sheet
+      .getProtections(SpreadsheetApp.ProtectionType.RANGE)
+      .forEach((protection) => protection.remove());
+    this.sheet.clear();
+  }
+
   appendValues(values: SheetValue[][]): void {
     this.writeValues(this.getLastRow() + 1, 1, values);
   }
@@ -82,5 +89,20 @@ export class AppsScriptSheetGateway implements SheetGateway {
 
   createSheet(name: string): SheetPort {
     return new AppsScriptSheet(this.spreadsheet.insertSheet(name));
+  }
+
+  archiveSheet(name: string, preferredArchiveName: string): string {
+    const source = this.spreadsheet.getSheetByName(name);
+    if (!source) throw new Error(`Cannot archive missing sheet: ${name}`);
+
+    let archiveName = preferredArchiveName;
+    let suffix = 2;
+    while (this.spreadsheet.getSheetByName(archiveName)) {
+      archiveName = `${preferredArchiveName}_${suffix}`;
+      suffix += 1;
+    }
+
+    source.copyTo(this.spreadsheet).setName(archiveName).hideSheet();
+    return archiveName;
   }
 }

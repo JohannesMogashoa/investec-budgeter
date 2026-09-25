@@ -12,6 +12,27 @@ export class IncompatibleWorkbookError extends Error {
   }
 }
 
+const LEGACY_V1_3_TRANSACTION_HEADERS = [
+  'TransactionId',
+  'ProviderTransactionKey',
+  'AccountId',
+  'TransactionDate',
+  'PostingDate',
+  'Description',
+  'Direction',
+  'Amount',
+  'SignedCashAmount',
+  'Currency',
+  'RunningBalance',
+  'TransactionType',
+  'PostedOrder',
+  'ImportState',
+  'MatchingState',
+  'CategoryId',
+  'AllocatedAmount',
+  'UnallocatedAmount',
+] as const;
+
 function firstRow(sheet: SheetPort): string[] {
   return (sheet.readValues()[0] ?? []).map((value) => String(value ?? '').trim());
 }
@@ -32,6 +53,17 @@ function isLegacySettingsLayout(sheet: SheetPort): boolean {
   return (
     String(header[0] ?? '').trim() === 'Key' &&
     header.slice(1).every((value) => String(value ?? '').trim() === '')
+  );
+}
+
+function isLegacyV1_3TransactionsLayout(sheet: SheetPort): boolean {
+  const values = sheet.readValues();
+  const title = String(values[0]?.[0] ?? '').trim();
+  const headers = (values[2] ?? []).map((value) => String(value ?? '').trim());
+  return (
+    title.startsWith('Transactions') &&
+    LEGACY_V1_3_TRANSACTION_HEADERS.every((header, index) => headers[index] === header) &&
+    headers.slice(LEGACY_V1_3_TRANSACTION_HEADERS.length).every((header) => header === '')
   );
 }
 
@@ -80,23 +112,31 @@ function validateExistingSheet(
 export interface SetupResult {
   readonly createdSheets: readonly string[];
   readonly updatedSheets: readonly string[];
+  readonly archivedSheets: readonly string[];
   readonly schemaVersion: string;
 }
 
 /** Creates or safely migrates the technical workbook sheets. */
 export function setupWorkbook(gateway: SheetGateway): SetupResult {
   const existing = new Map<string, SheetPort>();
-  const migrations: Array<() => void> = [];
+  const migrations: Array<() => string | void> = [];
 
   // Preflight every existing sheet before creating or changing anything.
   for (const schema of SCHEMA_MANIFEST) {
     const sheet = gateway.getSheet(schema.name);
     if (sheet) {
-      let migrate: (() => void) | undefined;
+      let migrate: (() => string | void) | undefined;
       if (schema.name === 'Settings' && isTemplateSettingsLayout(sheet)) {
         migrate = () => migrateTemplateSettings(sheet, schema);
       } else if (schema.name === 'Settings' && isLegacySettingsLayout(sheet)) {
         migrate = () => migrateLegacySettings(sheet, schema);
+      } else if (schema.name === 'Transactions' && isLegacyV1_3TransactionsLayout(sheet)) {
+        migrate = () => {
+          const archiveName = gateway.archiveSheet(schema.name, '_Archive_Transactions_V1_3');
+          sheet.clearForSchemaMigration();
+          sheet.writeValues(1, 1, [[...schema.headers]]);
+          return archiveName;
+        };
       }
       validateExistingSheet(sheet, schema, migrate ? [...schema.headers] : undefined);
       if (migrate) migrations.push(migrate);
@@ -105,7 +145,9 @@ export function setupWorkbook(gateway: SheetGateway): SetupResult {
   }
 
   // Apply recognized migrations only after all existing sheets pass preflight.
-  migrations.forEach((migrate) => migrate());
+  const archivedSheets = migrations
+    .map((migrate) => migrate())
+    .filter((archiveName): archiveName is string => typeof archiveName === 'string');
 
   const createdSheets: string[] = [];
   const updatedSheets: string[] = [];
@@ -134,5 +176,5 @@ export function setupWorkbook(gateway: SheetGateway): SetupResult {
     system.writeValues(versionRow + 1, 2, [[WORKBOOK_SCHEMA_VERSION]]);
   }
 
-  return { createdSheets, updatedSheets, schemaVersion: WORKBOOK_SCHEMA_VERSION };
+  return { createdSheets, updatedSheets, archivedSheets, schemaVersion: WORKBOOK_SCHEMA_VERSION };
 }

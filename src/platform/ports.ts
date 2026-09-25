@@ -95,6 +95,7 @@ export interface SheetPort {
   readValues(): SheetValue[][];
   writeValues(startRow: number, startColumn: number, values: SheetValue[][]): void;
   clearValues(): void;
+  clearForSchemaMigration(): void;
   appendValues(values: SheetValue[][]): void;
   applySetup(setup: SheetSetup): void;
 }
@@ -104,4 +105,5 @@ export interface SheetGateway {
   getTimeZone(): string;
   getSheet(name: string): SheetPort | undefined;
   createSheet(name: string): SheetPort;
+  archiveSheet(name: string, preferredArchiveName: string): string;
 }

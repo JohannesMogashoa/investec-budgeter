@@ -30,8 +30,11 @@ import { createInvestecHttpClient } from './investecRuntime';
 export function setupWorkbookSheets(): void {
   try {
     const result = setupWorkbook(new AppsScriptSheetGateway());
+    const archived = result.archivedSheets.length
+      ? ` Legacy Transactions archived: ${result.archivedSheets.join(', ')}; review before removing.`
+      : '';
     SpreadsheetApp.getUi().alert(
-      `Workbook ready (schema ${result.schemaVersion}). Created: ${result.createdSheets.length}; updated: ${result.updatedSheets.length}.`,
+      `Workbook ready (schema ${result.schemaVersion}). Created: ${result.createdSheets.length}; updated: ${result.updatedSheets.length}.${archived}`,
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown workbook setup error.';

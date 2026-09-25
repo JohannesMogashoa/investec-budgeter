@@ -541,7 +541,9 @@ Do not hash user-owned fields. Do not hash volatile retrieval timestamps. Docume
 8. Partition into `insert`, `update`, and `unchanged`.
 9. Apply updates in contiguous batches where practical.
 10. Append inserts in one or a small number of range writes.
-11. Never replace the entire `Transactions` sheet.
+11. During normal sync, never replace the entire `Transactions` sheet. The one-time V1.3 template
+    migration is the exception: it first preserves the legacy tab as a hidden archive, then resets
+    only the incompatible legacy layout for the Phase 2 schema.
 12. Update `Last Seen UTC` for fetched rows; this may be batched separately.
 13. Persist the checkpoint only after all intended writes succeed.
 14. Finalize the sync-run row.

@@ -157,6 +157,11 @@ export class FakeSheet implements SheetPort {
     this.values = [];
   }
 
+  clearForSchemaMigration(): void {
+    this.values = [];
+    this.setup = undefined;
+  }
+
   appendValues(values: SheetValue[][]): void {
     this.writeValues(this.getLastRow() + 1, 1, values);
   }
@@ -190,5 +195,20 @@ export class FakeSheetGateway implements SheetGateway {
     const sheet = new FakeSheet(name);
     this.sheets.set(name, sheet);
     return sheet;
+  }
+
+  archiveSheet(name: string, preferredArchiveName: string): string {
+    const source = this.sheets.get(name);
+    if (!source) throw new Error(`Cannot archive missing sheet: ${name}`);
+
+    let archiveName = preferredArchiveName;
+    let suffix = 2;
+    while (this.sheets.has(archiveName)) {
+      archiveName = `${preferredArchiveName}_${suffix}`;
+      suffix += 1;
+    }
+
+    this.sheets.set(archiveName, new FakeSheet(archiveName, source.readValues()));
+    return archiveName;
   }
 }

@@ -68,6 +68,7 @@ src/       TypeScript production code
 tests/     Vitest unit and repository tests
 scripts/   build and bundle validation tools
 docs/      setup, operations, contracts, decisions, and acceptance evidence
+templates/ sanitized, source-controlled Google Sheets starting workbooks
 .github/   quality, deployment, and pull-request policy workflows
 ```
 
@@ -94,6 +95,12 @@ npm run verify       # all pull-request checks
 For local Apps Script work, copy `.clasp.json.example` to `.clasp.json`, use the intended script ID, and keep credentials outside the repository. The generated `dist/` directory and `.clasp.json` are ignored. Never commit `.env`, credentials, bank data, tokens, or raw provider payloads.
 
 ## Workbook setup
+
+Use a fresh copy of [the Phase 2 workbook template](templates/Investec%20Budgeter%20-%20Phase%202%20Template.xlsx)
+for a new staging or production workbook. It retains the budgeting layout, contains the exact
+technical headers from `src/sheets/schemaManifest.ts`, and uses safe, generic starter settings and
+categories. It contains no bank credentials or imported transaction data; configure each copied
+workbook and its bound Apps Script deployment for the intended environment.
 
 After deploying the bundle to a bound spreadsheet:
 
