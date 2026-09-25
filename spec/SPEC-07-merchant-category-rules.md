@@ -1,7 +1,7 @@
 # 📋 SPEC-07: Merchant and Category Rules
 
-- **Version:** 1.0.0
-- **Status:** `LOCKED`
+- **Version:** 1.1.0
+- **Status:** `REVIEW`
 - **Tracked Issue(s):** #7 — [Phase 3] Implement merchant and category rules
 - **Target Branch:** `feat/spec-07-merchant-category-rules`
 
@@ -158,7 +158,93 @@ locked rule syntax, but:
 - The display value is not included in the provider payload hash.
 - A rule edit can change a display value without changing the ledger identity or provider data.
 
-### 3.5 State transitions and invariants
+### 3.5 Pure matcher boundary and preservation contract
+
+Milestone 2 matching is a pure operation over an immutable transaction snapshot. The snapshot
+must contain the following fields:
+
+```typescript
+export interface RuleEvaluationInput {
+  readonly transactionRowKey: string;
+  readonly descriptionRaw: string;
+  readonly transactionType: string;
+  readonly amount: number;
+  readonly currency: string;
+  readonly identityVersion: string;
+  readonly providerPayloadHash: string;
+}
+```
+
+The matcher receives the rule-set version supplied by the caller and returns a
+`ClassificationResult`. It must copy `transactionRowKey` into the result, use `descriptionRaw`,
+`transactionType`, and signed native-currency `amount` as comparison inputs, and never mutate or
+rewrite the input snapshot. `currency`, `identityVersion`, and `providerPayloadHash` are
+preservation sentinels, not matching predicates. Any workbook application must write only the
+derived classification/audit result and must verify that those sentinel values and
+`Description Raw` remain unchanged; only `transactionRowKey` is copied into the
+`ClassificationResult`.
+
+The exact predicate composition, duplicate-priority policy, rule-set-version derivation, audit-key
+derivation, candidate serialization, and transaction amount precision policy remain unresolved;
+see Section 3.6. No implementation may choose a value for those items until the corresponding
+decision is recorded.
+
+### 3.6 Open decisions requiring developer/product clarification
+
+The following findings were traced against the existing requirements and ADRs. No authoritative
+source resolves them, so they remain explicit blockers for returning this specification to
+`LOCKED`.
+
+#### D1 — Predicate composition
+
+The rule contract defines independent description, transaction-type, and amount predicates, but
+does not state whether multiple configured predicates are combined with logical AND or logical OR.
+AC-2.1 and the matcher contract are blocked until the product/developer chooses the composition
+policy. The choice must also define how a rule with only one configured predicate behaves and how
+blank optional predicates are ignored.
+
+#### D2 — Priority conflict policy
+
+The existing invariant and validation behavior require enabled priorities to be unique, while the
+precedence and AC-2.3 requirements require equal-priority matches to produce `REVIEW_REQUIRED`.
+ADR-004 repeats both concepts without resolving the conflict. The product/developer must choose
+one of these policies:
+
+- permit duplicate enabled priorities and route equal-priority eligible matches to review; or
+- reject duplicate enabled priorities and define a different valid-rule conflict condition.
+
+AC-2.3 and the priority validation requirements remain blocked until this choice is recorded.
+
+#### D3 — Rule Set Version derivation
+
+The classification contract requires a deterministic `ruleSetVersion`, but no existing ADR or
+contract defines its canonical input fields, ordering, normalization, hash/encoding, or treatment
+of disabled rules. The product/developer must approve the derivation before AC-3.1 and AC-3.4 can
+be objectively implemented.
+
+#### D4 — Audit Key derivation
+
+The audit contract says that `Audit Key` is derived from transaction row key and rule-set version,
+but does not define the exact serialization, delimiter/escaping, or hash/encoding. The
+product/developer must approve the derivation before idempotent audit behavior in AC-3.4 can be
+verified.
+
+#### D5 — Candidate Rule IDs serialization
+
+The contract requires deterministic, delimiter-safe serialization of sorted candidate IDs, but
+does not define the delimiter, escaping/encoding, empty-value representation, or round-trip
+behavior. The product/developer must approve this representation before audit provenance in AC-3.1
+and AC-3.3 can be verified.
+
+#### D6 — Transaction amount precision
+
+The current contract validates configured rule values to two decimal places, but does not state
+what happens when a provider transaction amount has more than two decimal places. ADR-002 defines
+minor-unit conversion for identity, not classification matching. The product/developer must
+choose whether matching rejects, rounds, truncates, or otherwise normalizes such transaction
+amounts. AC-2.5 remains blocked until this policy is recorded.
+
+### 3.7 State transitions and invariants
 
 - **Initial state:** A transaction has no rule result, or has an existing user correction.
 - **Valid transitions:** `NO_MATCH → APPLIED`, `NO_MATCH → REVIEW_REQUIRED`,
@@ -252,30 +338,37 @@ locked rule syntax, but:
 
 ### Milestone 2 Criteria
 
-- **AC-2.1:** Given a transaction and enabled rules matching description, transaction type, or
-  amount predicates, when evaluated, then the result includes the configured category and optional
-  budget-item suggestion without changing any provider-owned transaction field.
+- **AC-2.1 [BLOCKED — D1]:** Given a transaction snapshot and enabled rules with description,
+  transaction-type, and/or amount predicates, when evaluated under the resolved predicate
+  composition policy, then the result includes the configured category and optional budget-item
+  suggestion without changing any provider-owned transaction field.
 - **AC-2.2:** Given the same transaction and rule set evaluated twice, when the evaluations complete,
   then the outcome, result, and selected rule ID are identical.
-- **AC-2.3:** Given two or more eligible matches, when no single winner is established by the
-  documented precedence contract, then the result is `REVIEW_REQUIRED` and no winner is applied.
-- **AC-2.4:** Given a merchant cleanup rule, when the display value is produced, then the derived
-  merchant value reflects the rule while `Description Raw` remains unchanged and the row identity
-  and provider payload hash remain unchanged.
-- **AC-2.5:** Given amount values at, below, and above each configured boundary, when evaluated,
-  then matching follows the documented inclusive/exclusive amount semantics.
+- **AC-2.3 [BLOCKED — D2]:** Given two or more eligible matches, when no single winner is
+  established by the resolved precedence and conflict policy, then the result is
+  `REVIEW_REQUIRED` and no winner is applied.
+- **AC-2.4:** Given a `RuleEvaluationInput` containing `Description Raw`, `Row Key`, `Identity
+Version`, and `Provider Payload Hash`, when a merchant cleanup rule produces a display value,
+  then the derived merchant value reflects the rule, the input snapshot remains unchanged, and
+  the result preserves the row key while the provider identity/hash sentinels remain unchanged in
+  the input snapshot.
+- **AC-2.5 [BLOCKED — D6]:** Given amount values at, below, and above each configured boundary,
+  when evaluated under the resolved transaction amount precision policy, then matching follows the
+  documented inclusive/exclusive amount semantics.
 
 ### Milestone 3 Criteria
 
-- **AC-3.1:** Given an automatic classification, when it is written, then the producing `ruleId`
-  and classification outcome are retained for audit.
+- **AC-3.1 [BLOCKED — D3, D5]:** Given an automatic classification, when it is written, then the
+  producing `ruleId`, classification outcome, resolved rule-set version, and deterministic
+  candidate serialization are retained for audit.
 - **AC-3.2:** Given a non-empty user category, budget-item value, note, exclusion, or review decision,
   when classification is re-run or provider data is refreshed, then the user-owned value remains
   unchanged.
 - **AC-3.3:** Given conflicting or ambiguous matches, when classification runs, then the transaction
   is routed to review with no silent automatic winner.
-- **AC-3.4:** Given a previously classified transaction, when the same rule snapshot is applied
-  again, then no duplicate audit record or duplicate transaction row is created.
+- **AC-3.4 [BLOCKED — D3, D4]:** Given a previously classified transaction, when the same resolved
+  rule snapshot is applied again, then the derived audit key addresses the existing audit row and
+  no duplicate audit record or duplicate transaction row is created.
 - **AC-3.5:** Given any classification run, when it completes, then provider-owned fields including
   `Description Raw`, `Reference Raw`, amount, dates, status, identity, and payload hash are equal
   before and after the run.
@@ -290,13 +383,17 @@ locked rule syntax, but:
 - **Required Verification Suite:** `npm run verify` must pass with zero lint, typecheck, format,
   build, or test failures.
 - **Unit coverage:** Rule validation, exact/contains matching, amount boundaries,
-  precedence, tie detection, deterministic serialization, and merchant cleanup.
+  precedence, tie detection, matcher snapshot preservation, deterministic serialization, and
+  merchant cleanup. Tests must cover the resolved policies for D1, D2, and D6 before the related
+  acceptance criteria are unblocked.
 - **Repository coverage:** Rule persistence, schema migration, formula-injection safety, audit
   provenance, idempotent re-application, and preservation of user-owned fields.
 - **Regression coverage:** Re-sync/provider updates preserve user corrections and never rewrite raw
   provider descriptions.
 - **Acceptance mapping:** Tests must identify the applicable criteria (`AC-1.x`, `AC-2.x`, or
-  `AC-3.x`) in names or nearby comments.
+  `AC-3.x`) in names or nearby comments. Tests for rule-set versions, audit keys, and candidate
+  serialization must use the resolved D3-D5 algorithms before AC-3.1, AC-3.3, and AC-3.4 are
+  unblocked.
 
 ---
 
@@ -306,7 +403,7 @@ locked rule syntax, but:
 - Text predicates use case-insensitive literal `EXACT` or `CONTAINS` matching after trimming.
 - Amount predicates use signed native-currency values with exact two-decimal validation and
   inclusive `BETWEEN` bounds.
-- Lower unique numeric priority wins. Equal priorities produce `REVIEW_REQUIRED`.
+- Lower numeric priority wins; the duplicate-priority conflict policy is unresolved under D2.
 - Automatic category and budget-item values are suggestions in `Classification Audit`; existing
   user-owned transaction fields remain authoritative.
 - Classification audit history is retained by rule-set version, with one idempotent row per
@@ -328,3 +425,23 @@ locked rule syntax, but:
   evaluation must preserve its locking, idempotency, and current-cycle projection boundaries.
 - **ADR-004 — Merchant and Category Rule Storage:** Rules and classification audit data remain
   inside the workbook while user decisions remain separate from automatic suggestions.
+
+---
+
+## 🧭 11. Refinement Disposition — Version 1.1.0
+
+| Review finding                                      | Existing authoritative basis                                                                          | Disposition                                                                                    |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| AC-2.3 conflicts with unique enabled priorities     | Rule invariant and validation requirements; ADR-004 precedence decision; AC-2.3 review requirement    | Not resolved. Requires D2 developer/product clarification.                                     |
+| Predicate composition undefined                     | Rule schema and matching scope define predicates but do not define composition                        | Not resolved. Requires D1 developer/product clarification.                                     |
+| Matcher input/output contract undefined             | `ClassificationResult`, provider immutability, ADR-002 identity rules, and ADR-004 ownership boundary | Resolved by the pure `RuleEvaluationInput` and `ClassificationResult` boundary in Section 3.5. |
+| Row identity and payload hash propagation undefined | ADR-002 and the provider immutability invariant require preservation                                  | Resolved by making identity/hash preservation sentinels explicit in Section 3.5 and AC-2.4.    |
+| Rule Set Version derivation undefined               | Classification contract requires the field but no derivation authority exists                         | Not resolved. Requires D3 developer/product clarification.                                     |
+| Audit Key derivation undefined                      | Audit contract only states the source fields, not canonical encoding                                  | Not resolved. Requires D4 developer/product clarification.                                     |
+| Candidate Rule IDs serialization undefined          | Audit contract requires deterministic delimiter-safe output but gives no encoding                     | Not resolved. Requires D5 developer/product clarification.                                     |
+| Amount precision beyond two decimals undefined      | Two-decimal rule validation exists; ADR-002 only defines identity precision                           | Not resolved. Requires D6 developer/product clarification.                                     |
+
+The specification remains `REVIEW`. Implementation may not begin for acceptance criteria marked
+`BLOCKED` until the corresponding decision is recorded. D2-D5 may require a new ADR because they
+affect precedence or persisted classification/audit data contracts; no new ADR is created while
+the underlying product decisions remain unresolved.

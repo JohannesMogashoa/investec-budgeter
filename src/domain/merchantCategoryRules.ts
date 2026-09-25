@@ -20,6 +20,23 @@ export interface MerchantCategoryRule {
   readonly budgetItemId?: string;
 }
 
+export type ClassificationOutcome = 'APPLIED' | 'REVIEW_REQUIRED' | 'NO_MATCH';
+
+export interface RuleTransactionSnapshot {
+  readonly descriptionRaw: string;
+  readonly transactionType: string;
+  readonly amount: number;
+}
+
+export interface RuleEvaluationResult {
+  readonly outcome: ClassificationOutcome;
+  readonly matchedRuleId?: string;
+  readonly candidateRuleIds?: readonly string[];
+  readonly suggestedCategory?: string;
+  readonly suggestedBudgetItemId?: string;
+  readonly merchantDisplay: string;
+}
+
 export class InvalidRuleSetError extends Error {
   constructor(message: string) {
     super(message);
@@ -223,5 +240,89 @@ export function ruleToRecord(rule: MerchantCategoryRule): Record<string, SheetVa
     'Merchant Display': rule.merchantDisplay ?? null,
     Category: rule.category || null,
     'Budget Item ID': rule.budgetItemId ?? null,
+  };
+}
+
+function normalizedText(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function matchesText(value: string, pattern: string, kind: TextMatchKind): boolean {
+  const normalizedValue = normalizedText(value);
+  const normalizedPattern = normalizedText(pattern);
+  return kind === 'EXACT'
+    ? normalizedValue === normalizedPattern
+    : normalizedValue.includes(normalizedPattern);
+}
+
+function matchesAmount(amount: number, rule: MerchantCategoryRule): boolean {
+  if (rule.amountOperator === undefined || rule.amountValue === undefined) return true;
+  switch (rule.amountOperator) {
+    case 'EQUALS':
+      return amount === rule.amountValue;
+    case 'GREATER_THAN':
+      return amount > rule.amountValue;
+    case 'GREATER_OR_EQUAL':
+      return amount >= rule.amountValue;
+    case 'LESS_THAN':
+      return amount < rule.amountValue;
+    case 'LESS_OR_EQUAL':
+      return amount <= rule.amountValue;
+    case 'BETWEEN':
+      return (
+        rule.amountValue2 !== undefined && amount >= rule.amountValue && amount <= rule.amountValue2
+      );
+  }
+}
+
+function matchesRule(transaction: RuleTransactionSnapshot, rule: MerchantCategoryRule): boolean {
+  const descriptionMatches =
+    rule.descriptionMatch === undefined ||
+    (rule.descriptionMatchType !== undefined &&
+      matchesText(transaction.descriptionRaw, rule.descriptionMatch, rule.descriptionMatchType));
+  const transactionTypeMatches =
+    rule.transactionTypeMatch === undefined ||
+    (rule.transactionTypeMatchType !== undefined &&
+      matchesText(
+        transaction.transactionType,
+        rule.transactionTypeMatch,
+        rule.transactionTypeMatchType,
+      ));
+  return descriptionMatches && transactionTypeMatches && matchesAmount(transaction.amount, rule);
+}
+
+/**
+ * Evaluates an already validated rule set without mutating the transaction snapshot.
+ * Rules with equal eligible priorities are returned for review rather than arbitrarily chosen.
+ */
+export function evaluateMerchantCategoryRules(
+  transaction: RuleTransactionSnapshot,
+  rules: readonly MerchantCategoryRule[],
+): RuleEvaluationResult {
+  const eligible = rules
+    .filter((rule) => rule.enabled && matchesRule(transaction, rule))
+    .sort((left, right) => left.priority - right.priority || (left.ruleId < right.ruleId ? -1 : 1));
+  const merchantDisplay = transaction.descriptionRaw;
+  if (eligible.length === 0) {
+    return { outcome: 'NO_MATCH', merchantDisplay };
+  }
+
+  const winningPriority = eligible[0].priority;
+  const winners = eligible.filter((rule) => rule.priority === winningPriority);
+  if (winners.length > 1) {
+    return {
+      outcome: 'REVIEW_REQUIRED',
+      candidateRuleIds: winners.map((rule) => rule.ruleId),
+      merchantDisplay,
+    };
+  }
+
+  const winner = winners[0];
+  return {
+    outcome: 'APPLIED',
+    matchedRuleId: winner.ruleId,
+    suggestedCategory: winner.category,
+    suggestedBudgetItemId: winner.budgetItemId,
+    merchantDisplay: winner.merchantDisplay ?? merchantDisplay,
   };
 }
