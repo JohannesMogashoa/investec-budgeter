@@ -3,7 +3,9 @@
 This repository uses specification-driven development.
 
 ## Before You Change Code
+
 Read:
+
 1. `AGENTS.md`
 2. The applicable file in `spec/`
 3. Relevant ADRs in `docs/decisions/`
@@ -37,11 +39,13 @@ Review milestone 1 of SPEC-INV-17 against its acceptance criteria.
 ```
 
 ## Branches
+
 Use short-lived feature branches. The spec's target branch is authoritative. Default convention:
 
 `feat/spec-[id]-[feature-slug]`
 
 ## Commits
+
 Prefer:
 
 `<type>(<scope>): spec-<id> milestone-<n> <description>`
@@ -49,6 +53,7 @@ Prefer:
 Keep unrelated changes separate.
 
 ## Verification
+
 Run from the repository root:
 
 ```bash
@@ -64,7 +69,9 @@ npm run verify
 `npm run verify` is the pre-review quality gate.
 
 ## Pull Requests
+
 A PR must identify:
+
 - spec ID,
 - milestone,
 - acceptance criteria implemented,
@@ -75,7 +82,9 @@ A PR must identify:
 Do not mix speculative refactors or unrelated cleanup into feature PRs.
 
 ## Security
+
 Never commit:
+
 - Investec credentials,
 - API keys/tokens,
 - bank data,
@@ -86,6 +95,7 @@ Never commit:
 Use safe placeholders and environment variables.
 
 ## Codex
+
 Repository-level Codex configuration lives in `.codex/config.toml`. Shared reusable workflows live as Codex skills in `.agents/skills/`.
 
 Machine-specific configuration and credentials should remain outside the repository, normally in user-level Codex configuration.

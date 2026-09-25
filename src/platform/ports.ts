@@ -84,6 +84,7 @@ export interface SheetSetup {
   readonly frozenRows: number;
   readonly headerBackground: string;
   readonly headerFontColor: string;
+  readonly protectHeader?: boolean;
   readonly columns: readonly SheetColumnFormat[];
   readonly hidden?: boolean;
 }
