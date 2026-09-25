@@ -8,3 +8,7 @@ coverage/
 .claspignore
 staging-deployment-evidence.txt
 *.log
+
+# Local secrets / overrides
+*.local
+.codex/config.local.toml

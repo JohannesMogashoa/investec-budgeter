@@ -1,0 +1,33 @@
+# Repository-scoped Codex configuration.
+#
+# Keep this file safe to commit:
+# - Never place API keys, access tokens, Investec credentials, or other secrets here.
+# - Contributor-specific secrets belong in environment variables or user-level configuration.
+#
+# Codex reads repository instructions from AGENTS.md. Reusable workflow prompts live
+# under .codex/prompts/ and specifications live under spec/.
+
+# OpenAI documentation MCP is useful when work touches Codex, MCP, or OpenAI APIs.
+[mcp_servers.openaiDeveloperDocs]
+url = "https://developers.openai.com/mcp"
+
+[mcp_servers.notion]
+url = "https://mcp.notion.com/mcp"
+
+# ---------------------------------------------------------------------------
+# Optional project integrations
+# ---------------------------------------------------------------------------
+#
+# Add shared MCP servers only when they are genuinely required by contributors.
+# Prefer remote MCP servers or commands whose credentials are supplied through
+# environment variables. Never commit credentials.
+#
+# Suggested project integrations:
+# - Notion: task/spec ingestion
+# - GitHub: issues, pull requests, review evidence
+# - Google Drive: shared project documentation where required
+#
+# Do NOT configure Investec client credentials in this file.
+#
+# Machine-specific MCP configuration should normally live in ~/.codex/config.toml
+# rather than this repository file.
