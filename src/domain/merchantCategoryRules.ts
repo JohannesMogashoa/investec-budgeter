@@ -1,4 +1,4 @@
-import type { SheetValue } from '../platform/ports';
+import type { Hasher, SheetValue } from '../platform/ports';
 
 export type TextMatchKind = 'EXACT' | 'CONTAINS';
 export type AmountOperator =
@@ -35,6 +35,11 @@ export interface RuleEvaluationResult {
   readonly suggestedCategory?: string;
   readonly suggestedBudgetItemId?: string;
   readonly merchantDisplay: string;
+}
+
+function compareRuleIds(left: string, right: string): number {
+  if (left === right) return 0;
+  return left < right ? -1 : 1;
 }
 
 export class InvalidRuleSetError extends Error {
@@ -186,6 +191,48 @@ export function validateRuleSet(rules: readonly MerchantCategoryRule[]): void {
       throw new InvalidRuleSetError(`Rule ${rule.ruleId} requires at least one predicate.`);
     }
   }
+}
+
+function canonicalOptionalText(value: string | undefined): string | null {
+  return value === undefined ? null : value.trim().toLowerCase();
+}
+
+export function canonicalEnabledRules(rules: readonly MerchantCategoryRule[]): string {
+  validateRuleSet(rules);
+  const canonicalRules = rules
+    .filter((rule) => rule.enabled)
+    .sort((left, right) => compareRuleIds(left.ruleId, right.ruleId))
+    .map((rule) => [
+      rule.ruleId,
+      rule.priority,
+      canonicalOptionalText(rule.descriptionMatch),
+      rule.descriptionMatchType ?? null,
+      canonicalOptionalText(rule.transactionTypeMatch),
+      rule.transactionTypeMatchType ?? null,
+      rule.amountOperator ?? null,
+      rule.amountValue ?? null,
+      rule.amountValue2 ?? null,
+      rule.merchantDisplay ?? null,
+      rule.category,
+      rule.budgetItemId ?? null,
+    ]);
+  return JSON.stringify(['rule-set-v1', canonicalRules]);
+}
+
+export function ruleSetVersion(rules: readonly MerchantCategoryRule[], hasher: Hasher): string {
+  return hasher.sha256(canonicalEnabledRules(rules));
+}
+
+export function serializeCandidateRuleIds(candidateRuleIds: readonly string[]): string {
+  return JSON.stringify([...candidateRuleIds].sort(compareRuleIds));
+}
+
+export function classificationAuditKey(
+  transactionRowKey: string,
+  version: string,
+  hasher: Hasher,
+): string {
+  return hasher.sha256(JSON.stringify(['classification-audit-v1', transactionRowKey, version]));
 }
 
 export function ruleFromRecord(record: Readonly<Record<string, SheetValue>>): MerchantCategoryRule {

@@ -1,6 +1,6 @@
 # 📋 SPEC-07: Merchant and Category Rules
 
-- **Version:** 1.3.1
+- **Version:** 1.4.0
 - **Status:** `LOCKED`
 - **Tracked Issue(s):** #7 — [Phase 3] Implement merchant and category rules
 - **Target Branch:** `feat/spec-07-merchant-category-rules`
@@ -370,9 +370,9 @@ is unblocked for this policy.
 - **Target Commit Scope:** `feat(rules): spec-07 milestone-3 apply auditable classifications`
 - **Exit condition:** Repeated application is idempotent; provider fields and user corrections are
   unchanged; every automatic result is explainable.
-- **Implementation status:** `NOT IMPLEMENTED`. No classification application service, audit
-  repository, or transaction-preservation integration exists in the current branch. This milestone
-  is ready for implementation after the locked-spec readiness review.
+- **Implementation status:** `IMPLEMENTED` in the current branch. Evidence includes the
+  classification application service, audit repository, canonical identity functions, lock-aware
+  no-write handling, menu entrypoint, and mapped application tests.
 
 ---
 
@@ -441,8 +441,8 @@ is unblocked for this policy.
 - **Regression coverage:** Re-sync/provider updates preserve user corrections and never rewrite raw
   provider descriptions.
 - **Acceptance mapping:** Tests must identify the applicable criteria (`AC-1.x`, `AC-2.x`, or
-  `AC-3.x`) in names or nearby comments. Milestone 3 tests must cover the D3-D5 canonical
-  algorithms and round trips.
+  `AC-3.x`) in names or nearby comments. Milestone 3 tests cover the D3-D5 canonical algorithms,
+  round trips, idempotent upsert, user/provider preservation, rule retirement, and lock handling.
 
 ---
 
@@ -491,5 +491,5 @@ is unblocked for this policy.
 | Candidate Rule IDs serialization undefined          | Audit provenance requires deterministic delimiter-safe round-tripping                         | Resolved by D5: sorted compact JSON string array, empty value `[]`.                |
 | Amount precision beyond two decimals undefined      | Current matcher compares supplied numbers directly; thresholds allow two decimals             | Resolved: no rounding or truncation; direct numeric comparison.                    |
 
-The specification is `LOCKED`. Milestones 1 and 2 are implemented; Milestone 3 is specified but
-not yet implemented. The next legal workflow step is the locked-spec readiness review.
+The specification is `LOCKED`. Milestones 1, 2, and 3 are implemented. The next workflow step is
+sequential milestone QA evidence on the exact reviewed HEAD.
