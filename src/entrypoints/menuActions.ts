@@ -1,6 +1,7 @@
 import { syncAccounts as runAccountSync } from '../application/syncAccounts';
 import { syncBalances as runBalanceSync } from '../application/syncBalances';
 import { syncTransactions as runTransactionSync } from '../application/syncTransactions';
+import { classifyTransactions as runClassification } from '../application/classifyTransactions';
 import {
   getLiveSyncStatus,
   startLiveSync as enableLiveSync,
@@ -21,6 +22,8 @@ import { AppsScriptSheetGateway } from '../platform/appsScriptSheetGateway';
 import { AppsScriptUserCache } from '../platform/appsScriptUserCache';
 import { AppsScriptTriggerManager } from '../platform/appsScriptTriggerManager';
 import { AccountRepository } from '../sheets/accountRepository';
+import { ClassificationAuditRepository } from '../sheets/classificationAuditRepository';
+import { RulesRepository } from '../sheets/rulesRepository';
 import { SettingsRepository } from '../sheets/settingsRepository';
 import { SyncStateRepository } from '../sheets/syncStateRepository';
 import { SyncRunRepository } from '../sheets/syncRunRepository';
@@ -116,6 +119,21 @@ export function syncTransactions(): void {
   const result = runTransactionSync(createTransactionDependencies('MANUAL'));
   SpreadsheetApp.getUi().alert(
     `Transaction sync ${result.status.toLowerCase()}. Received: ${result.received}; inserted: ${result.inserted}; updated: ${result.updated}; unchanged: ${result.unchanged}; rejected: ${result.rejected}; promotions: ${result.promotions}.`,
+  );
+}
+
+export function classifyTransactions(): void {
+  const gateway = new AppsScriptSheetGateway();
+  const result = runClassification({
+    rules: new RulesRepository(gateway),
+    transactions: new TransactionRepository(gateway),
+    audits: new ClassificationAuditRepository(gateway),
+    locks: new AppsScriptLockProvider(),
+    clock: new AppsScriptClock(),
+    hasher: new AppsScriptHasher(),
+  });
+  SpreadsheetApp.getUi().alert(
+    `Classification ${result.status.toLowerCase()}. Evaluated: ${result.evaluated}; audit rows: ${result.auditRows}.`,
   );
 }
 

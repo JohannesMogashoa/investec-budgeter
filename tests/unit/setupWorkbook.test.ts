@@ -22,6 +22,43 @@ describe('setupWorkbook', () => {
     ]);
   });
 
+  it('creates the rules and classification audit contracts without transaction data', () => {
+    const gateway = new FakeSheetGateway();
+
+    setupWorkbook(gateway);
+
+    expect(gateway.getSheet('Rules')?.readValues()[0]).toEqual([
+      'Rule ID',
+      'Enabled',
+      'Priority',
+      'Description Match',
+      'Description Match Type',
+      'Transaction Type Match',
+      'Transaction Type Match Type',
+      'Amount Operator',
+      'Amount Value',
+      'Amount Value 2',
+      'Merchant Display',
+      'Category',
+      'Budget Item ID',
+    ]);
+    expect(gateway.getSheet('Classification Audit')?.readValues()[0]).toEqual([
+      'Audit Key',
+      'Transaction Row Key',
+      'Rule Set Version',
+      'Evaluated UTC',
+      'Outcome',
+      'Matched Rule ID',
+      'Candidate Rule IDs',
+      'Suggested Category',
+      'Suggested Budget Item ID',
+      'Merchant Display',
+      'Reason',
+    ]);
+    expect((gateway.getSheet('Rules') as FakeSheet).setup?.protectHeader).toBe(true);
+    expect(gateway.getSheet('Transactions')?.readValues()).toHaveLength(1);
+  });
+
   it('is repeatable and does not replace existing rows', () => {
     const gateway = new FakeSheetGateway();
     setupWorkbook(gateway);
