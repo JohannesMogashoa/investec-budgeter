@@ -23,7 +23,7 @@ if (command === 'ci') {
   const branch = process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || currentBranch();
   let spec;
   try {
-    spec = findSpec(specArg);
+    spec = findSpec(specArg || branch);
   } catch {
     if (!config.protectedBranches.includes(branch)) {
       fail(

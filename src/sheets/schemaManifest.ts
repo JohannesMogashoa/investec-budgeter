@@ -1,6 +1,6 @@
 import type { SheetColumnFormat, SheetSetup } from '../platform/ports';
 
-export const WORKBOOK_SCHEMA_VERSION = '1.1.0';
+export const WORKBOOK_SCHEMA_VERSION = '1.2.0';
 
 export type ColumnOwnership = 'provider' | 'system' | 'user';
 
@@ -119,6 +119,44 @@ export const SCHEMA_MANIFEST: readonly SheetSchema[] = [
     column('Metric', 'system', 'Current-cycle metric name.'),
     column('Value', 'system', 'Current-cycle metric value.'),
     column('As Of UTC', 'system', 'Timestamp for the metric snapshot.', { numberFormat: '@' }),
+  ]),
+  sheet(
+    'Rules',
+    [
+      column('Rule ID', 'user', 'Stable user-defined rule identifier.'),
+      column('Enabled', 'user', 'Whether this rule participates in evaluation.'),
+      column('Priority', 'user', 'Positive numeric priority; lower values win.'),
+      column('Description Match', 'user', 'Literal provider description match text.'),
+      column('Description Match Type', 'user', 'EXACT or CONTAINS.'),
+      column('Transaction Type Match', 'user', 'Literal provider transaction type match text.'),
+      column('Transaction Type Match Type', 'user', 'EXACT or CONTAINS.'),
+      column('Amount Operator', 'user', 'Amount comparison operator.'),
+      column('Amount Value', 'user', 'Signed native-currency amount threshold.', {
+        numberFormat: '#,##0.00',
+      }),
+      column('Amount Value 2', 'user', 'Inclusive upper bound for BETWEEN.', {
+        numberFormat: '#,##0.00',
+      }),
+      column('Merchant Display', 'user', 'Derived merchant display value.'),
+      column('Category', 'user', 'Suggested category result.'),
+      column('Budget Item ID', 'user', 'Optional suggested budget item identifier.'),
+    ],
+    { protectHeader: true },
+  ),
+  sheet('Classification Audit', [
+    column('Audit Key', 'system', 'Idempotent transaction and rule-set result key.'),
+    column('Transaction Row Key', 'system', 'Transaction identity being classified.'),
+    column('Rule Set Version', 'system', 'Deterministic enabled-rule-set version.'),
+    column('Evaluated UTC', 'system', 'Classification evaluation timestamp.', {
+      numberFormat: '@',
+    }),
+    column('Outcome', 'system', 'APPLIED, REVIEW_REQUIRED, or NO_MATCH.'),
+    column('Matched Rule ID', 'system', 'Rule that produced an unambiguous result.'),
+    column('Candidate Rule IDs', 'system', 'Deterministically serialized review candidates.'),
+    column('Suggested Category', 'system', 'Automatic category suggestion.'),
+    column('Suggested Budget Item ID', 'system', 'Automatic budget-item suggestion.'),
+    column('Merchant Display', 'system', 'Derived merchant display value.'),
+    column('Reason', 'system', 'Safe classification review reason.'),
   ]),
   sheet('Sync Runs', [
     column('Run ID', 'system', 'Unique sync run identifier.'),

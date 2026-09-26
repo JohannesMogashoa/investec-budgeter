@@ -12,6 +12,7 @@ export function onOpen(): void {
     .addItem('Refresh accounts', 'syncAccounts')
     .addItem('Refresh balances', 'syncBalances')
     .addItem('Sync transactions', 'syncTransactions')
+    .addItem('Classify transactions', 'classifyTransactions')
     .addItem('Start live sync', 'startLiveSync')
     .addItem('Stop live sync', 'stopLiveSync')
     .addItem('View live sync status', 'viewLiveSyncStatus')

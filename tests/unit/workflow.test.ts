@@ -120,6 +120,15 @@ describe('feature workflow gates', () => {
     expect(prepush.output).toContain('no SPEC ID detected');
   });
 
+  it('resolves the feature spec from the GitHub pull-request head branch in CI', () => {
+    const directory = createFixture('detached-checkout');
+
+    const ci = run(directory, ['ci'], { GITHUB_HEAD_REF: 'feat/spec-01-workflow' });
+
+    expect(ci.status).toBe(0);
+    expect(ci.output).toContain('Workflow CI structural gate passed for SPEC-01.');
+  });
+
   it('allows only the documented first push before a remote attestation exists', () => {
     const directory = createFixture();
     const head = execFileSync('git', ['rev-parse', 'HEAD'], {
