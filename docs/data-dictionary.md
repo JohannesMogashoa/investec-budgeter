@@ -42,3 +42,16 @@ This protected sheet is a derived read model. It may be regenerated at any time 
 It contains cycle boundaries, freshness, posted/pending inflows and outflows, net movement,
 average/projected outflow, balances, and transaction count. It does not become a second source of
 truth.
+
+## Rules
+
+The `Rules` sheet is user-owned configuration. Row order has no meaning; enabled priorities must
+be unique. Rules use literal, case-insensitive `EXACT` or `CONTAINS` text matching and signed
+native-currency amount predicates. Automatic results are suggestions and do not overwrite
+user-owned transaction fields.
+
+## Classification Audit
+
+The `Classification Audit` sheet is system-owned. The classification application stores the latest
+idempotent result for each transaction and rule-set version while retaining prior versions for
+auditability; it never replaces the raw provider description.
