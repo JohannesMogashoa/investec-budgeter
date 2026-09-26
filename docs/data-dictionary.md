@@ -52,7 +52,8 @@ user-owned transaction fields.
 
 ## Classification Audit
 
-The `Classification Audit` sheet is system-owned. It stores the latest idempotent result for each
-transaction and rule-set version while retaining prior versions for auditability. It contains rule
-provenance, review candidates, suggestions, derived merchant display text, and safe outcome reasons;
-it never replaces the raw provider description.
+The `Classification Audit` sheet is system-owned and currently contains the reserved schema for the
+Milestone 3 application slice. The current implementation does not write audit rows. Once that
+milestone is implemented, it will store the latest idempotent result for each transaction and
+rule-set version while retaining prior versions for auditability; it will never replace the raw
+provider description.

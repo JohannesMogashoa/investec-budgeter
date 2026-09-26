@@ -1,7 +1,7 @@
 # ADR-004: Merchant and Category Rule Storage
 
 - **Status:** Accepted
-- **Date:** 2026-09-25
+- **Date:** 2026-09-26
 - **Decision Owners:** Spec Architect / Software Engineer / QA Reviewer
 - **Related Specs:** SPEC-07
 - **Supersedes:** N/A
@@ -62,6 +62,18 @@ are never overwritten by rule evaluation or transaction synchronization.
 Rule matching is local and deterministic. Text predicates use case-insensitive literal exact or
 contains matching after trimming. Amount predicates use signed native-currency values with exact
 two-decimal validation. Lower unique numeric priority wins; equal priorities require review.
+
+Persisted classification identity uses versioned canonical JSON and SHA-256. The rule-set version
+is the lowercase hexadecimal SHA-256 of `["rule-set-v1", canonicalEnabledRules]`, where enabled
+rules are sorted by `Rule ID` and represented in the fixed schema order with normalized text
+predicates and JSON `null` for absent optional values. Disabled rules are excluded. An audit key is
+the lowercase hexadecimal SHA-256 of `["classification-audit-v1", transactionRowKey,
+ruleSetVersion]`. Review candidate IDs are stored as a sorted compact JSON string array, with `[]`
+for no candidates. JSON arrays are used to avoid delimiter collisions and preserve round trips.
+
+Classification takes the existing `investec-bank-sync` workbook lock with a 5-second acquisition
+timeout. Failure to acquire it is a no-write `SKIPPED_LOCKED` result. Invalid rules fail closed
+before writes with the safe code `INVALID_RULE_SET`.
 
 ## Consequences
 
